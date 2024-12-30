@@ -33,6 +33,13 @@ internal abstract class HttpServer
             opt.PropertyNameCaseInsensitive = true;
             opt.AllowTrailingCommas = true;
 
+            if (msg.Request.InputStream.Length == 0 && msg.Request.HttpMethod != MethodTypes.Get)
+            {
+                var e = Activator.CreateInstance<T>();
+                msg.IsValid = false;
+                return e;
+            }
+            
             var ctx = JsonSerializer.Deserialize<T>(msg.Request.InputStream, opt);
             return ctx;
         }
@@ -59,6 +66,12 @@ internal abstract class HttpServer
         if (msg.Request.Url == null)
         {
             msg.Response.StatusCode = StatusCodes.BadRequest;
+            return msg;
+        }
+
+        if (msg.Request.HttpMethod is MethodTypes.Options or MethodTypes.Head or MethodTypes.Trace)
+        {
+            msg.Response.StatusCode = StatusCodes.MethodNotAllowed;
             return msg;
         }
         
@@ -94,7 +107,6 @@ internal abstract class HttpServer
             try
             {
                 // Will wait here until we hear from a connection
-                ctx = await Listener.GetContextAsync();
                 var req = ctx.Request;
                 var res = ctx.Response;
 

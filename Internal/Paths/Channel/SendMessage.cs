@@ -1,12 +1,13 @@
 using BonfireServer.Database.DatabaseTypes;
 using BonfireServer.Internal.Common;
+using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
 
 namespace BonfireServer.Internal.Paths.Channel;
 
 public class SendMessagePath : BasePath
 {
-    public override string Method { get; set; } = "POST";
+    public override string Method { get; set; } = MethodTypes.Get;
 
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : class
     {
