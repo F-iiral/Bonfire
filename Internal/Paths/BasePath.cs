@@ -1,7 +1,7 @@
 using BonfireServer.Internal.Const;
+using BonfireServer.Internal.Context;
 
 namespace BonfireServer.Internal.Paths;
-using BonfireServer.Internal.Context;
 
 public abstract class BasePath
 {

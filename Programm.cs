@@ -1,19 +1,20 @@
-﻿using BonfireServer.Internal.Const;
-
-namespace BonfireServer;
-using System.Text.Json;
-using System.Net;
+﻿using System.Net;
 using System.Text;
+using System.Text.Json;
+using BonfireServer.Database;
 using BonfireServer.Internal;
+using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Context.Channel;
 using BonfireServer.Internal.Paths.Channel;
 
-class HttpServer
+namespace BonfireServer;
+
+internal abstract class HttpServer
 {
     private static HttpListener Listener;
     private static readonly string BaseUrl = "http://localhost:8000/";
-
+    
     private static string pageData =
         "<!DOCTYPE>" +
         "<html>" +
@@ -37,14 +38,17 @@ class HttpServer
         }
         catch (ArgumentNullException e)
         {
+            Logger.Warn(e.Message);
             msg.IsValid = false;
         }
         catch (JsonException e)
         {
+            Logger.Warn(e.Message);
             msg.IsValid = false;
         }
         catch (NotSupportedException e)
         {
+            Logger.Warn(e.Message);
             msg.IsValid = false;
         }
         return Activator.CreateInstance<T>();
@@ -85,23 +89,28 @@ class HttpServer
     {
         while (true)
         {
+            var ctx = await Listener.GetContextAsync();
+            
             try
             {
                 // Will wait here until we hear from a connection
-                var ctx = await Listener.GetContextAsync();
+                ctx = await Listener.GetContextAsync();
                 var req = ctx.Request;
                 var res = ctx.Response;
 
                 Logger.Info($"[{req.HttpMethod}] {req.Url?.ToString()} - {req.UserAgent}");
-
+                
                 var msg = Router(new ReqResMessage(req, res));
-
                 await msg.Response.OutputStream.WriteAsync(msg.Data.AsMemory(0, msg.Data.Length));
                 res.Close();
             }
             catch (Exception ex)
             {
                 Logger.Error(ex.ToString());
+                
+                ctx.Response.StatusCode = StatusCodes.InternalServerError;
+                await ctx.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(string.Empty));
+                ctx.Response.Close();
             }
         }
     }
@@ -112,6 +121,9 @@ class HttpServer
         Listener.Prefixes.Add(BaseUrl);
         Listener.Start();
         Logger.Info($"Listening for connections on {BaseUrl}");
+        
+        // Start the Database so that the static constructor is called
+        Database.Database.CreateIndexes();
 
         var listenTask = HandleIncomingConnections();
         listenTask.GetAwaiter().GetResult();

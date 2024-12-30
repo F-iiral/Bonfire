@@ -3,11 +3,14 @@ using System;
 
 public class LiteFlakeId
 {
-    public readonly long Id = LiteFlakeIdGenerator.GenerateId();
+    public readonly long Val = LiteFlakeIdGenerator.GenerateId();
 
+    public LiteFlakeId() {}
+    public LiteFlakeId(long val) => Val = val;
+    
     public DateTime GetTimestamp()
     {
-        return new DateTime((Id >> 8) + LiteFlakeIdGenerator.Epoch);
+        return new DateTime((Val >> 8) + LiteFlakeIdGenerator.Epoch);
     }
 }
 

@@ -2,8 +2,8 @@ namespace BonfireServer.Internal;
 
 public enum LogLevel
 {
-    Info,
     Debug,
+    Info,
     Warning,
     Error,
 }
@@ -19,8 +19,17 @@ public static class Logger
 
     private static void LogLine(string message)
     {
-        message = $"[{DateTime.Now:HH:mm:ss}] - {message}";
+        message = $"[{DateTime.Now:HH:mm:ss.fff}] - {message}";
         Console.WriteLine(message);
+    }
+    
+    public static void Debug(string message)
+    {
+        if (LogPriority > LogLevel.Debug)
+            return;
+
+        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+        LogLine(message);
     }
     
     public static void Info(string message)
@@ -29,15 +38,6 @@ public static class Logger
             return;
         
         Console.ResetColor();
-        LogLine(message);
-    }
-
-    public static void Debug(string message)
-    {
-        if (LogPriority > LogLevel.Debug)
-            return;
-
-        Console.ForegroundColor = ConsoleColor.DarkMagenta;
         LogLine(message);
     }
     
