@@ -1,6 +1,6 @@
 namespace BonfireServer.Internal.Context.Channel;
 
-public class SendMessageContext : BaseContext
+public class SendMessageContext : IBaseContext
 {
     public string Message { get; set; }
 }

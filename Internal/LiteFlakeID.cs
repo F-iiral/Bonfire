@@ -1,5 +1,6 @@
-namespace BonfireServer.Internal;
 using System;
+
+namespace BonfireServer.Internal;
 
 public class LiteFlakeId
 {
@@ -12,6 +13,29 @@ public class LiteFlakeId
     {
         return new DateTime((Val >> 8) + LiteFlakeIdGenerator.Epoch);
     }
+    
+    public static explicit operator long(LiteFlakeId id) => id.Val;
+    
+    public static bool operator ==(LiteFlakeId a, LiteFlakeId b) => a.Val == b.Val;
+    public static bool operator !=(LiteFlakeId a, LiteFlakeId b) => !(a == b);
+    public static bool operator >=(LiteFlakeId a, LiteFlakeId b) => a.Val >= b.Val;
+    public static bool operator <=(LiteFlakeId a, LiteFlakeId b) => a.Val <= b.Val;
+    public static bool operator >(LiteFlakeId a, LiteFlakeId b)  => a.Val > b.Val;
+    public static bool operator <(LiteFlakeId a, LiteFlakeId b)  => a.Val < b.Val;
+    
+    public static bool operator ==(LiteFlakeId a, long b) => a.Val == b;
+    public static bool operator !=(LiteFlakeId a, long b) => !(a == b);
+    public static bool operator >=(LiteFlakeId a, long b) => a.Val >= b;
+    public static bool operator <=(LiteFlakeId a, long b) => a.Val <= b;
+    public static bool operator >(LiteFlakeId a, long b)  => a.Val > b;
+    public static bool operator <(LiteFlakeId a, long b) => a.Val < b;
+    
+    public static bool operator ==(long a, LiteFlakeId b) => a == b.Val;
+    public static bool operator !=(long a, LiteFlakeId b) => !(a == b);
+    public static bool operator >=(long a, LiteFlakeId b) => a >= b.Val;
+    public static bool operator <=(long a, LiteFlakeId b) => a <= b.Val;
+    public static bool operator >(long a, LiteFlakeId b)  => a > b.Val;
+    public static bool operator <(long a, LiteFlakeId b)  => a < b.Val;
 }
 
 file static class LiteFlakeIdGenerator

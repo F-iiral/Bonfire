@@ -1,8 +1,9 @@
+using BonfireServer.Database;
 using BonfireServer.Internal.Const;
 
 namespace BonfireServer.Internal.Common;
 
-public class Server(LiteFlakeId? id)
+public class Server(LiteFlakeId? id) : ICachableType
 {
     public LiteFlakeId Id { get; } = id ?? new LiteFlakeId();
 

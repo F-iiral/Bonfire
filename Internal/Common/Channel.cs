@@ -1,6 +1,8 @@
+using BonfireServer.Database;
+
 namespace BonfireServer.Internal.Common;
 
-public class Channel(LiteFlakeId? id)
+public class Channel(LiteFlakeId? id) : ICachableType
 {
     public LiteFlakeId Id { get; } =  id ?? new LiteFlakeId();
 

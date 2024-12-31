@@ -11,6 +11,10 @@ public static class Database
     private static readonly IMongoCollection<MessageEntry> MessageCollection;
     private static readonly IMongoCollection<ServerEntry> ServerCollection;
     private static readonly IMongoCollection<UserEntry> UserCollection;
+    private static readonly DatabaseCache<Channel> ChannelCache;
+    private static readonly DatabaseCache<Message> MessageCache;
+    private static readonly DatabaseCache<Server> ServerCache;
+    private static readonly DatabaseCache<User> UserCache;
     
     static Database()
     {
@@ -27,12 +31,17 @@ public static class Database
             ServerCollection = db.GetCollection<ServerEntry>("servers");
             MessageCollection = db.GetCollection<MessageEntry>("messages");
             
-            Logger.Info("Successfully connceted to MongoDB.");
+            Logger.Info("Creating Caches...");
+            ChannelCache = new();
+            MessageCache = new();
+            ServerCache = new();
+            UserCache = new();
+            
+            Logger.Info("Successfully connected to MongoDB.");
         }
         catch (Exception e)
         {
-            Logger.Error(e.ToString());
-            Logger.Error("\nDid you forget to connect to the database?");
+            throw new Exception($"Failed to initialize database (Possibly not connected?): {e.Message}");
         }
     }
 
@@ -57,6 +66,9 @@ public static class Database
     }
     public static Channel FindChannel(long channelId)
     {
+        if (ChannelCache.Get(channelId, out var value))
+            return value!;
+        
         var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channelId);
         var data = ChannelCollection.Find(expression).First();
 
@@ -71,6 +83,7 @@ public static class Database
         channel.Name = data.Name;
         channel.Messages = data.Messages.Select(FindMessage).ToList();
 
+        ChannelCache.Add(channel);
         return channel;
     }
     
@@ -80,6 +93,9 @@ public static class Database
     }
     public static Message FindMessage(long messageId)
     {
+        if (MessageCache.Get(messageId, out var value))
+            return value!;
+        
         var expression = Builders<MessageEntry>.Filter.Eq(x => x.Id, messageId);
         var data = MessageCollection.Find(expression).First();
 
@@ -94,6 +110,7 @@ public static class Database
         message.Author = FindUser(data.Author);
         message.Content = data.Content;
 
+        MessageCache.Add(message);
         return message;
     }
 
@@ -103,6 +120,9 @@ public static class Database
     }
     public static Server FindServer(long serverId)
     {
+        if (ServerCache.Get(serverId, out var value))
+            return value!;
+        
         var expression = Builders<ServerEntry>.Filter.Eq(x => x.Id, serverId);
         var data = ServerCollection.Find(expression).First();
         
@@ -119,6 +139,7 @@ public static class Database
         server.Admins = data.Admins.Select(x => new Tuple<User, byte>(FindUser(x.Item1), x.Item2)).ToList();
         server.Users = data.Users.Select(FindUser).ToList();
 
+        ServerCache.Add(server);
         return server;
     }
     
@@ -128,6 +149,9 @@ public static class Database
     }
     private static User FindUser(long userId)
     {
+        if (UserCache.Get(userId, out var value))
+            return value!;
+        
         var expression = Builders<UserEntry>.Filter.Eq(x => x.Id, userId);
         var data = UserCollection.Find(expression).First();
         
@@ -154,46 +178,43 @@ public static class Database
         user.FriendRequests = data.Servers.Select(FindUser).ToList();
         user.DirectMessages = data.Servers.Select(FindChannel).ToList();
         
+        UserCache.Add(user);
         return user;
     }
     
-    public static void SaveChannel(Channel message)
+    public static void SaveChannel(Channel channel)
     {
-        SaveChannel(new ChannelEntry(message));
-    }
-    public static void SaveChannel(ChannelEntry channelEntry)
-    {    
+        ChannelCache.Add(channel);
+        
+        var databaseEntry = new ChannelEntry(channel);
         var options = new ReplaceOptions { IsUpsert = true };
-        ChannelCollection.ReplaceOne(x => x.Id == channelEntry.Id, channelEntry, options);
+        ChannelCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
 
     public static void SaveMessage(Message message)
     {
-        SaveMessage(new MessageEntry(message));
-    }
-    public static void SaveMessage(MessageEntry messageEntry)
-    {    
+        MessageCache.Add(message);
+        
+        var databaseEntry = new MessageEntry(message);
         var options = new ReplaceOptions { IsUpsert = true };
-        MessageCollection.ReplaceOne(x => x.Id == messageEntry.Id, messageEntry, options);
+        MessageCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
     
     public static void SaveServer(Server server)
     {
-        SaveServer(new ServerEntry(server));
-    }
-    public static void SaveServer(ServerEntry serverEntry)
-    { 
+        ServerCache.Add(server);
+        
+        var databaseEntry = new ServerEntry(server);
         var options = new ReplaceOptions { IsUpsert = true };
-        ServerCollection.ReplaceOne(x => x.Id == serverEntry.Id, serverEntry, options);
+        ServerCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
     
     public static void SaveUser(User user)
     {
-        SaveUser(new UserEntry(user));
-    }
-    public static void SaveUser(UserEntry userEntry)
-    {    
+        UserCache.Add(user);
+        
+        var databaseEntry = new UserEntry(user);
         var options = new ReplaceOptions { IsUpsert = true };
-        UserCollection.ReplaceOne(x => x.Id == userEntry.Id, userEntry, options);
+        UserCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
 }

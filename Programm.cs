@@ -25,7 +25,7 @@ internal abstract class HttpServer
         "    <p>:3</p>" +
         "</html>";
 
-    private static T? DeserializeBody<T>(ReqResMessage msg) where T : BaseContext
+    private static T? DeserializeBody<T>(ReqResMessage msg) where T : IBaseContext
     {
         try
         {
@@ -33,14 +33,16 @@ internal abstract class HttpServer
             opt.PropertyNameCaseInsensitive = true;
             opt.AllowTrailingCommas = true;
 
-            if (msg.Request.InputStream.Length == 0 && msg.Request.HttpMethod != MethodTypes.Get)
+            var stream = new StreamReader(msg.Request.InputStream).ReadToEnd();
+
+            if (stream.Length == 0 && msg.Request.HttpMethod != MethodTypes.Get)
             {
                 var e = Activator.CreateInstance<T>();
                 msg.IsValid = false;
                 return e;
             }
             
-            var ctx = JsonSerializer.Deserialize<T>(msg.Request.InputStream, opt);
+            var ctx = JsonSerializer.Deserialize<T>(stream, opt);
             return ctx;
         }
         catch (ArgumentNullException e)

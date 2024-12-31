@@ -1,9 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using BonfireServer.Database;
 
 namespace BonfireServer.Internal.Common;
 
-public class User(LiteFlakeId? id)
+public class User(LiteFlakeId? id) : ICachableType
 {
     public LiteFlakeId Id { get; protected set; } = id ?? new LiteFlakeId();
     public string Name { get; set; }

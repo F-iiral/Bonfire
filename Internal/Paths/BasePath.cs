@@ -16,10 +16,10 @@ public abstract class BasePath
         return msg;
     }
     
-    protected bool IsValid<T>(ReqResMessage msg, T? rawCtx) where T : BaseContext
+    protected bool IsValid<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext
     {
         return msg.Request.HttpMethod == Method && msg.IsValid && rawCtx != null;
     }
 
-    public abstract ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : BaseContext;
+    public abstract ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext;
 }
