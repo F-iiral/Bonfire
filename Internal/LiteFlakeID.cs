@@ -1,6 +1,5 @@
-using System;
-
 namespace BonfireServer.Internal;
+#pragma warning disable CS0660, CS0661
 
 public class LiteFlakeId
 {
@@ -43,7 +42,7 @@ file static class LiteFlakeIdGenerator
     public const long Epoch = 1672531200;
     private static long LastTimestamp = 0;
     private static long LastSequence = 0;
-    private static byte MaxSequence = 255;
+    private static readonly byte MaxSequence = 255;
 
     public static long GenerateId()
     {

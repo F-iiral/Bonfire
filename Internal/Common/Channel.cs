@@ -9,5 +9,5 @@ public class Channel(LiteFlakeId? id) : ICachableType
     public string Name { get; set; }
 
     public Server? Server { get; set; } = null;
-    public List<Message> Messages { get; set; } = [];
+    public List<Message?> Messages { get; set; } = [];
 }

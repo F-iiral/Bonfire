@@ -18,6 +18,7 @@ public static class StatusCodes
     public const int Conflict = 409;
     public const int Gone = 410;
     public const int ImATeapot = 418;
+    public const int UnprocessableContent = 422;
     
     public const int InternalServerError = 500;
     public const int NotImplemented = 501;

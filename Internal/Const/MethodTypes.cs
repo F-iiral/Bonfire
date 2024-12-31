@@ -1,6 +1,6 @@
 namespace BonfireServer.Internal.Const;
 
-public class MethodTypes
+public static class MethodTypes
 {
     public const string Get = "GET";
     public const string Post = "POST";

@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using BonfireServer.Database;
 using BonfireServer.Internal;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
@@ -12,7 +11,7 @@ namespace BonfireServer;
 
 internal abstract class HttpServer
 {
-    private static HttpListener Listener;
+    private static readonly HttpListener Listener = new();
     private static readonly string BaseUrl = "http://localhost:8000/";
     
     private static string pageData =
@@ -43,6 +42,12 @@ internal abstract class HttpServer
             }
             
             var ctx = JsonSerializer.Deserialize<T>(stream, opt);
+            
+            if (ctx != null)
+                ctx.Token = msg.Request.Headers.Get("Authorization");
+            else
+                msg.IsValid = false;
+            
             return ctx;
         }
         catch (ArgumentNullException e)
@@ -93,7 +98,7 @@ internal abstract class HttpServer
                 new SendMessagePath().Execute(msg, ctx);
                 break;
             default:
-                msg.Response.StatusCode = StatusCodes.BadRequest;
+                msg.Response.StatusCode = StatusCodes.NotFound;
                 break;
         }
         
@@ -131,7 +136,6 @@ internal abstract class HttpServer
     
     public static void Main(string[] args)
     {
-        Listener = new HttpListener();
         Listener.Prefixes.Add(BaseUrl);
         Listener.Start();
         Logger.Info($"Listening for connections on {BaseUrl}");

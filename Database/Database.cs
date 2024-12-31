@@ -4,6 +4,7 @@ using BonfireServer.Internal.Common;
 using MongoDB.Driver;
 
 namespace BonfireServer.Database;
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 
 public static class Database
 {
@@ -23,7 +24,7 @@ public static class Database
             Logger.Info("Opening MongoDB connection...");
             
             var client = new MongoClient();
-            var db = client.GetDatabase("Bonefire");
+            var db = client.GetDatabase("Bonfire");
             
             Logger.Info("Fetching MongoDB connections...");
             UserCollection = db.GetCollection<UserEntry>("users");
@@ -60,26 +61,23 @@ public static class Database
         Logger.Info("Successfully created MongoDB indexes.");
     }
 
-    public static Channel FindChannel(LiteFlakeId channelId)
+    public static Channel? FindChannel(LiteFlakeId channelId)
     {
        return FindChannel(channelId.Val);
     }
-    public static Channel FindChannel(long channelId)
+    public static Channel? FindChannel(long channelId)
     {
         if (ChannelCache.Get(channelId, out var value))
             return value!;
         
         var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channelId);
-        var data = ChannelCollection.Find(expression).First();
+        var data = ChannelCollection.Find(expression).FirstOrDefault();
 
         if (data == null)
-        {
-            Logger.Warn("Channel not found. This might cause an error later."); 
             return null;
-        }
 
         var channel = new Channel(new LiteFlakeId(data.Id));
-        channel.Server = FindServer(data.Id);
+        channel.Server = FindServer(data.Server);
         channel.Name = data.Name;
         channel.Messages = data.Messages.Select(FindMessage).ToList();
 
@@ -87,96 +85,99 @@ public static class Database
         return channel;
     }
     
-    public static Message FindMessage(LiteFlakeId messageId)
+    public static Message? FindMessage(LiteFlakeId messageId)
     {
         return FindMessage(messageId.Val);
     }
-    public static Message FindMessage(long messageId)
+    public static Message? FindMessage(long messageId)
     {
         if (MessageCache.Get(messageId, out var value))
             return value!;
         
         var expression = Builders<MessageEntry>.Filter.Eq(x => x.Id, messageId);
-        var data = MessageCollection.Find(expression).First();
+        var data = MessageCollection.Find(expression).FirstOrDefault();
 
         if (data == null)
-        {
-            Logger.Warn("Message not found! This might cause an error later."); 
             return null;
-        }
 
+        var channel = FindChannel(data.Channel);
+        var author = FindUser(data.Author);
+            
+        if (author == null || channel == null)
+            return null;
+        
         var message = new Message(new LiteFlakeId(data.Id));
-        message.Channel = FindChannel(data.Channel);
-        message.Author = FindUser(data.Author);
+        message.Channel = channel;
+        message.Author = author;
         message.Content = data.Content;
 
         MessageCache.Add(message);
         return message;
     }
 
-    public static Server FindServer(LiteFlakeId serverId)
+    public static Server? FindServer(LiteFlakeId serverId)
     {
         return FindServer(serverId.Val);
     }
-    public static Server FindServer(long serverId)
+    public static Server? FindServer(long serverId)
     {
         if (ServerCache.Get(serverId, out var value))
             return value!;
         
         var expression = Builders<ServerEntry>.Filter.Eq(x => x.Id, serverId);
-        var data = ServerCollection.Find(expression).First();
+        var data = ServerCollection.Find(expression).FirstOrDefault();
         
         if (data == null)
-        {
-            Logger.Warn("Server not found. This might cause an error later."); 
             return null;
-        }
+        
+        var owner = FindUser(data.Owner);
 
+        if (owner == null)
+            return null;
+        
         var server = new Server(new LiteFlakeId(data.Id));
         server.Name = data.Name;
-        server.Owner = FindUser(data.Owner);
-        server.Channels = data.Channels.Select(FindChannel).ToList();
-        server.Admins = data.Admins.Select(x => new Tuple<User, byte>(FindUser(x.Item1), x.Item2)).ToList();
-        server.Users = data.Users.Select(FindUser).ToList();
+        server.Owner = owner;
+        server.Channels = data.Channels.Select(FindChannel).Where(x => x != null).ToList()!;
+        server.Admins = data.Admins.Select(x => new Tuple<User, byte>(FindUser(x.Item1), x.Item2)).Where(x => x.Item1 != null).ToList();
+        server.Users =  data.Users.Select(FindUser).Where(x => x != null).ToList()!;
 
         ServerCache.Add(server);
         return server;
     }
     
-    public static User FindUser(LiteFlakeId userId)
+    public static User? FindUser(LiteFlakeId userId)
     {
         return FindUser(userId.Val);
     }
-    private static User FindUser(long userId)
+    public static User? FindUser(long userId)
     {
         if (UserCache.Get(userId, out var value))
             return value!;
         
         var expression = Builders<UserEntry>.Filter.Eq(x => x.Id, userId);
-        var data = UserCollection.Find(expression).First();
+        var data = UserCollection.Find(expression).FirstOrDefault();
         
         if (data == null)
-        {
-            Logger.Warn("User not found. This might cause an error later."); 
             return null;
-        }
-
+        
         var user = new User(new LiteFlakeId(data.Id));
         user.Name = data.Name;
         user.Discriminator = data.Discriminator;
         user.Email = data.Email;
         user.PasswordHash = data.PasswordHash;
         user.PasswordSalt = data.PasswordSalt;
+        user.AuthToken = data.AuthToken;
         user.Avatar = data.Avatar;
         user.Banner = data.Banner;
         user.Flags = data.Flags;
-        user.Nicknames = data.Nicknames.ToDictionary(
-            pair => FindServer(pair.Key), 
-            pair => pair.Value);
-        user.Servers = data.Servers.Select(FindServer).ToList();
-        user.Friends = data.Servers.Select(FindUser).ToList();
-        user.FriendRequests = data.Servers.Select(FindUser).ToList();
-        user.DirectMessages = data.Servers.Select(FindChannel).ToList();
+        user.Nicknames = data.Nicknames
+            .Where(pair => FindServer(pair.Key) != null)
+            .ToDictionary(pair => FindServer(pair.Key), pair => pair.Value)!;
+        user.Servers = data.Servers.Select(FindServer).Where(x => x != null).ToList()!;
+        user.Friends = data.Friends.Select(FindUser).Where(x => x != null).ToList()!;
+        user.FriendRequests = data.FriendRequests.Select(FindUser).Where(x => x != null).ToList()!;
+        user.DirectMessages = data.DirectMessages.Select(FindChannel).Where(x => x != null).ToList()!;
         
         UserCache.Add(user);
         return user;
@@ -190,7 +191,7 @@ public static class Database
         var options = new ReplaceOptions { IsUpsert = true };
         ChannelCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
-
+    
     public static void SaveMessage(Message message)
     {
         MessageCache.Add(message);

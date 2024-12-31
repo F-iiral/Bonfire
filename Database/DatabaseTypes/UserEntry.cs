@@ -12,7 +12,8 @@ public class UserEntry
     
     public byte[] PasswordHash { get; }
     public byte[] PasswordSalt { get; }
-
+    public string AuthToken { get; }
+    
     public string? Avatar { get; } = null;
     public string? Banner { get; } = null;
     public int Flags { get; } = 0;
@@ -31,6 +32,7 @@ public class UserEntry
         Email = user.Email;
         PasswordHash = user.PasswordHash;
         PasswordSalt = user.PasswordSalt;
+        AuthToken = user.AuthToken;
         Avatar = user.Avatar;
         Banner = user.Banner;
         Flags = user.Flags;

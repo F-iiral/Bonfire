@@ -1,6 +1,6 @@
 namespace BonfireServer.Internal.Const;
 
-public class AdminLevels
+public static class AdminLevels
 {
     public const byte Owner = 0;
     public const byte PrivilegedAdmin = 1;

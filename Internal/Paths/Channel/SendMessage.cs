@@ -1,4 +1,3 @@
-using BonfireServer.Database.DatabaseTypes;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
@@ -16,13 +15,19 @@ public class SendMessagePath : BasePath
         if (rawCtx is not SendMessageContext ctx)
             return InvalidMessage(msg);
 
+        var channel = Database.Database.FindChannel(ctx.ChannelId);
+        var author = Database.Database.FindUser(ctx.AuthorId);
+        var content = ctx.Message;
+        
+        if (channel == null || author == null || content == null)
+            return InvalidMessage(msg, true);
+
         var message = new Message(null);
-        message.Channel = new Common.Channel(null);
-        message.Author = new User(null);
-        message.Content = ctx.Message;
+        message.Channel = channel;
+        message.Author = author;
+        message.Content = content;
         
         Database.Database.SaveMessage(message);
-        Logger.Info(ctx.Message);
 
         return msg;
     }

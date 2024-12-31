@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Text;
 using BonfireServer.Database;
 
 namespace BonfireServer.Internal.Common;
@@ -13,6 +12,7 @@ public class User(LiteFlakeId? id) : ICachableType
     
     public byte[] PasswordHash { get; set; } = [];
     public byte[] PasswordSalt { get; set; } = [];
+    public string AuthToken { get; set; } = string.Empty;
 
     public string? Avatar { get; set; } = null;
     public string? Banner { get; set; } = null;
@@ -32,7 +32,7 @@ public class User(LiteFlakeId? id) : ICachableType
         user.Discriminator = FindNewDiscriminator(name);
         
         user.Email = email;
-        user.PasswordSalt = System.Security.Cryptography.RandomNumberGenerator.GetBytes(16);
+        user.PasswordSalt = RandomNumberGenerator.GetBytes(16);
         user.PasswordHash = Rfc2898DeriveBytes.Pbkdf2(password, user.PasswordSalt, 300000, HashAlgorithmName.SHA512, 512);
 
         user.Avatar = "";
