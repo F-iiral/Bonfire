@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using BonfireServer.Internal;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
@@ -13,16 +14,10 @@ internal abstract class HttpServer
 {
     private static readonly HttpListener Listener = new();
     private static readonly string BaseUrl = "http://localhost:8000/";
-    
-    private static string pageData =
-        "<!DOCTYPE>" +
-        "<html>" +
-        "  <head>" +
-        "    <title>HttpListener Example</title>" +
-        "  </head>" +
-        "  <body>" +
-        "    <p>:3</p>" +
-        "</html>";
+    private static readonly Dictionary<string, byte[]> Files = new();
+    private static readonly Regex PublicFileRegex = new(@"\/public\/(styles|scripts|pages)\/", RegexOptions.Compiled & RegexOptions.IgnoreCase);
+
+    public static byte[] GetFile(string name) => Files[name];
 
     private static T? DeserializeBody<T>(ReqResMessage msg) where T : IBaseContext
     {
@@ -81,19 +76,38 @@ internal abstract class HttpServer
             msg.Response.StatusCode = StatusCodes.MethodNotAllowed;
             return msg;
         }
-        
-        switch (msg.Request.Url.ToString().Replace(BaseUrl, string.Empty))
+
+        if (PublicFileRegex.IsMatch(msg.Request.RawUrl ?? ""))
         {
-            case "":
+            var fileName = msg.Request.RawUrl!.Split("/").Last();
+            var fileExtension = Path.GetExtension(fileName);
+            var contentType = fileExtension switch
+            {
+                ".js" => "text/javascript",
+                ".css" => "text/css",
+                ".html" => "text/html",
+                _ => "text/plain"
+            };
+
+            msg.Response.StatusCode = StatusCodes.Ok;
+            msg.Response.ContentType = contentType;
+            msg.Response.ContentEncoding = Encoding.UTF8;
+            msg.Data = GetFile(fileName);
+            return msg;
+        }
+        
+        switch (msg.Request.RawUrl ?? "")
+        {
+            case "/":
                 msg.Response.StatusCode = StatusCodes.Ok;
                 msg.Response.ContentType = "text/html";
                 msg.Response.ContentEncoding = Encoding.UTF8;
-                msg.Data = Encoding.UTF8.GetBytes(pageData);
+                msg.Data = Files["main.html"];
                 break;
             case "grr":
                 msg.Response.StatusCode = StatusCodes.Gone;
                 break;
-            case "api/v1/channel/send_message":
+            case "/api/v1/channel/send_message":
                 var ctx = DeserializeBody<SendMessageContext>(msg);
                 new SendMessagePath().Execute(msg, ctx);
                 break;
@@ -133,6 +147,24 @@ internal abstract class HttpServer
             }
         }
     }
+
+    private static void LoadFrontendFiles()
+    {
+        var dirPath = Path.GetFullPath("./Public");
+        
+        if (!Path.Exists(dirPath))
+             dirPath = Path.GetFullPath("../../../Public");
+
+        foreach (var filePath in Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories))
+        {
+            if (Path.GetExtension(filePath) is ".ts" or ".map")
+                continue;
+            
+            var filename = Path.GetFileName(filePath);
+            Logger.Info($"Loading '{filename}' ...");
+            Files[filename] = File.ReadAllBytes(filePath);
+        }
+    }
     
     public static void Main(string[] args)
     {
@@ -142,6 +174,8 @@ internal abstract class HttpServer
         
         // Start the Database so that the static constructor is called
         Database.Database.CreateIndexes();
+
+        LoadFrontendFiles();
 
         var listenTask = HandleIncomingConnections();
         listenTask.GetAwaiter().GetResult();

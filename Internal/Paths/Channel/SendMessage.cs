@@ -1,3 +1,4 @@
+using System.Text;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
@@ -11,6 +12,8 @@ public class SendMessagePath : BasePath
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : default
     {
         if (!IsValid(msg, rawCtx))
+            return InvalidMessage(msg);
+        if (!IsAuthorized(msg, rawCtx))
             return InvalidMessage(msg);
         if (rawCtx is not SendMessageContext ctx)
             return InvalidMessage(msg);
@@ -29,6 +32,9 @@ public class SendMessagePath : BasePath
         
         Database.Database.SaveMessage(message);
 
+        msg.Response.StatusCode = StatusCodes.Ok;
+        msg.Response.ContentType = "application/json";
+        msg.Response.ContentEncoding = Encoding.UTF8;
         return msg;
     }
 }

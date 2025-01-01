@@ -1,0 +1,46 @@
+:root {
+    --white: #dddddd;
+    --grey-lighter: #323232;
+    --grey-light: #282828;
+    --grey-medium: #1E1E1E;
+    --grey-dark: #141414;
+    --grey-darker: #0A0A0A;
+    --blue-light: lightskyblue;
+    --blue-dark: dodgerblue;
+    --warn-color: #F4BB40;
+    --error-color: #F44040;
+}
+
+body {
+    background-color: var(--grey-medium);
+    color: var(--white);
+    font-family: Roboto, Roboto-Light, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+a {
+    color: var(--blue-dark);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--blue-light);
+}
+a:visited {
+    font-style: italic;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    background-color: #171717;
+    margin-right: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    width: 300px;
+    height: 100%;
+}

@@ -6,7 +6,7 @@ namespace BonfireServer.Internal.Paths;
 public abstract class BasePath
 {
     public abstract string Method { get; set; }
-
+    
     protected ReqResMessage InvalidMessage(ReqResMessage msg, bool invalidData=false)
     {
         if (invalidData)
@@ -22,7 +22,12 @@ public abstract class BasePath
     
     protected bool IsValid<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext
     {
-        return msg.Request.HttpMethod == Method && msg.IsValid && rawCtx != null && rawCtx.Token != null;
+        return msg.Request.HttpMethod == Method && msg.IsValid && rawCtx != null;
+    }
+
+    protected bool IsAuthorized<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext
+    {
+        return rawCtx != null && rawCtx.Token != null;    // ToDo: Add Authorization check
     }
 
     public abstract ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext;
