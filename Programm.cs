@@ -17,7 +17,7 @@ internal abstract class HttpServer
     private static readonly Dictionary<string, byte[]> Files = new();
     private static readonly Regex PublicFileRegex = new(@"\/public\/(styles|scripts|pages)\/", RegexOptions.Compiled & RegexOptions.IgnoreCase);
 
-    public static byte[] GetFile(string name) => Files[name];
+    public static byte[]? GetFile(string name) => Files.GetValueOrDefault(name);
 
     private static T? DeserializeBody<T>(ReqResMessage msg) where T : IBaseContext
     {
@@ -89,10 +89,18 @@ internal abstract class HttpServer
                 _ => "text/plain"
             };
 
+            var data = GetFile(fileName);
+
+            if (data == null)
+            {
+                msg.Response.StatusCode = StatusCodes.NotFound;
+                return msg;
+            }
+            
             msg.Response.StatusCode = StatusCodes.Ok;
             msg.Response.ContentType = contentType;
             msg.Response.ContentEncoding = Encoding.UTF8;
-            msg.Data = GetFile(fileName);
+            msg.Data = data;
             return msg;
         }
         
@@ -104,8 +112,11 @@ internal abstract class HttpServer
                 msg.Response.ContentEncoding = Encoding.UTF8;
                 msg.Data = Files["main.html"];
                 break;
-            case "grr":
+            case "/grr":
                 msg.Response.StatusCode = StatusCodes.Gone;
+                break;
+            case "/favicon.ico":
+                msg.Response.StatusCode = StatusCodes.NotImplemented;
                 break;
             case "/api/v1/channel/send_message":
                 var ctx = DeserializeBody<SendMessageContext>(msg);
@@ -157,7 +168,7 @@ internal abstract class HttpServer
 
         foreach (var filePath in Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories))
         {
-            if (Path.GetExtension(filePath) is ".ts" or ".map")
+            if (Path.GetExtension(filePath) == ".ts" )
                 continue;
             
             var filename = Path.GetFileName(filePath);
