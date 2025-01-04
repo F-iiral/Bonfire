@@ -3,6 +3,7 @@ namespace BonfireServer.Internal.Const;
 public static class MethodTypes
 {
     public const string Get = "GET";
+    public const string Query = "POST";    // This is a method that doesn't exist but will hopefully be added 
     public const string Post = "POST";
     public const string Put = "PUT";
     public const string Patch = "PATCH";

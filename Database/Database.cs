@@ -79,7 +79,7 @@ public static class Database
         var channel = new Channel(new LiteFlakeId(data.Id));
         channel.Server = FindServer(data.Server);
         channel.Name = data.Name;
-        channel.Messages = data.Messages.Select(FindMessage).ToList();
+        channel.Messages = data.Messages.Select(FindMessage).Where(x => x is not null).ToList()!;
 
         ChannelCache.Add(channel);
         return channel;
@@ -139,13 +139,18 @@ public static class Database
         server.Name = data.Name;
         server.Owner = owner;
         server.Channels = data.Channels.Select(FindChannel).Where(x => x != null).ToList()!;
-        server.Admins = data.Admins.Select(x => new Tuple<User, byte>(FindUser(x.Item1), x.Item2)).Where(x => x.Item1 != null).ToList();
+        var admins = data.Admins.Select(x => new Tuple<User?, byte>(FindUser(x.Item1), x.Item2));
+        server.Admins = admins.Where(x => x.Item1 is not null).ToList()!;
         server.Users =  data.Users.Select(FindUser).Where(x => x != null).ToList()!;
 
         ServerCache.Add(server);
         return server;
     }
-    
+
+    public static User? FindUserByToken(string token)
+    {
+        return FindUser(0); // ToDo: Token Parsing
+    }
     public static User? FindUser(LiteFlakeId userId)
     {
         return FindUser(userId.Val);
@@ -217,5 +222,33 @@ public static class Database
         var databaseEntry = new UserEntry(user);
         var options = new ReplaceOptions { IsUpsert = true };
         UserCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
+    }
+
+    public static void DeleteChannel(Channel channel)
+    {
+        ChannelCache.Remove(channel.Id, out var _);
+        
+        UserCollection.DeleteOne(x => x.Id == channel.Id);
+    }
+    
+    public static void DeleteMessage(Message message)
+    {
+        MessageCache.Remove(message.Id, out var _);
+        
+        UserCollection.DeleteOne(x => x.Id == message.Id);
+    }
+    
+    public static void DeleteServer(Server server)
+    {
+        ServerCache.Remove(server.Id, out var _);
+        
+        UserCollection.DeleteOne(x => x.Id == server.Id);
+    }
+    
+    public static void DeleteUser(User user)
+    {
+        UserCache.Remove(user.Id, out var _);
+        
+        UserCollection.DeleteOne(x => x.Id == user.Id);
     }
 }

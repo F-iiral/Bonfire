@@ -16,6 +16,7 @@ internal abstract class HttpServer
     private static readonly string BaseUrl = "http://localhost:8000/";
     private static readonly Dictionary<string, byte[]> Files = new();
     private static readonly Regex PublicFileRegex = new(@"\/public\/(styles|scripts|pages)\/", RegexOptions.Compiled & RegexOptions.IgnoreCase);
+    private static readonly JsonSerializerOptions JsonOptions = new(){ PropertyNameCaseInsensitive = true, AllowTrailingCommas = true };
 
     public static byte[]? GetFile(string name) => Files.GetValueOrDefault(name);
 
@@ -23,12 +24,14 @@ internal abstract class HttpServer
     {
         try
         {
-            var opt = new JsonSerializerOptions();
-            opt.PropertyNameCaseInsensitive = true;
-            opt.AllowTrailingCommas = true;
-
+            if (msg.Request.HttpMethod == MethodTypes.Get)
+            {
+                var e = Activator.CreateInstance<T>();
+                e.Token = msg.Request.Headers.Get("Authorization");
+                return e;
+            }
+            
             var stream = new StreamReader(msg.Request.InputStream).ReadToEnd();
-
             if (stream.Length == 0 && msg.Request.HttpMethod != MethodTypes.Get)
             {
                 var e = Activator.CreateInstance<T>();
@@ -36,8 +39,7 @@ internal abstract class HttpServer
                 return e;
             }
             
-            var ctx = JsonSerializer.Deserialize<T>(stream, opt);
-            
+            var ctx = JsonSerializer.Deserialize<T>(stream, JsonOptions);
             if (ctx != null)
                 ctx.Token = msg.Request.Headers.Get("Authorization");
             else
@@ -45,19 +47,19 @@ internal abstract class HttpServer
             
             return ctx;
         }
-        catch (ArgumentNullException e)
+        catch (ArgumentNullException ex)
         {
-            Logger.Warn(e.Message);
+            Logger.Warn(ex.Message);
             msg.IsValid = false;
         }
-        catch (JsonException e)
+        catch (JsonException ex)
         {
-            Logger.Warn(e.Message);
+            Logger.Warn(ex.Message);
             msg.IsValid = false;
         }
-        catch (NotSupportedException e)
+        catch (NotSupportedException ex)
         {
-            Logger.Warn(e.Message);
+            Logger.Warn(ex.Message);
             msg.IsValid = false;
         }
         return Activator.CreateInstance<T>();
@@ -71,7 +73,7 @@ internal abstract class HttpServer
             return msg;
         }
 
-        if (msg.Request.HttpMethod is MethodTypes.Options or MethodTypes.Head or MethodTypes.Trace)
+        if (msg.Request.HttpMethod is MethodTypes.Options or MethodTypes.Head or MethodTypes.Trace or MethodTypes.Connect)
         {
             msg.Response.StatusCode = StatusCodes.MethodNotAllowed;
             return msg;
@@ -103,25 +105,48 @@ internal abstract class HttpServer
             msg.Data = data;
             return msg;
         }
-        
+
         switch (msg.Request.RawUrl ?? "")
         {
+            ////////////////
+            // HTML PAGES //
+            ////////////////
+
             case "/":
                 msg.Response.StatusCode = StatusCodes.Ok;
                 msg.Response.ContentType = "text/html";
                 msg.Response.ContentEncoding = Encoding.UTF8;
                 msg.Data = Files["main.html"];
                 break;
-            case "/grr":
-                msg.Response.StatusCode = StatusCodes.Gone;
-                break;
             case "/favicon.ico":
                 msg.Response.StatusCode = StatusCodes.NotImplemented;
                 break;
-            case "/api/v1/channel/send_message":
-                var ctx = DeserializeBody<SendMessageContext>(msg);
-                new SendMessagePath().Execute(msg, ctx);
+            
+            ///////////////////////////////////////
+            // APPLICATION PROGRAMMING INTERFACE //
+            ///////////////////////////////////////
+            
+            // Channel Scope API
+            case "/api/v1/channel/get_messages":
+                var getMessagesCtx = DeserializeBody<GetMessagesContext>(msg);
+                new GetMessagesPath().Execute(msg, getMessagesCtx);
                 break;
+            case "/api/v1/channel/send_message":
+                var sendMessageCtx = DeserializeBody<SendMessageContext>(msg);
+                new SendMessagePath().Execute(msg, sendMessageCtx);
+                break;
+            case "/api/v1/channel/edit_message":
+                var editMessageCtx = DeserializeBody<EditMessageContext>(msg);
+                new EditMessagePath().Execute(msg, editMessageCtx);
+                break;
+            case "/api/v1/channel/delete_message":
+                var deleteMessageCtx = DeserializeBody<DeleteMessageContext>(msg);
+                new DeleteMessagePath().Execute<DeleteMessageContext>(msg, deleteMessageCtx);
+                break;
+            
+            //////////////////
+            // DEFAULT CASE //
+            //////////////////
             default:
                 msg.Response.StatusCode = StatusCodes.NotFound;
                 break;

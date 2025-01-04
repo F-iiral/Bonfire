@@ -7,11 +7,18 @@ public abstract class BasePath
 {
     public abstract string Method { get; set; }
     
-    protected ReqResMessage InvalidMessage(ReqResMessage msg, bool invalidData=false)
+    protected ReqResMessage InsufficentPermmissionMessage(ReqResMessage msg) {
+        msg.Response.StatusCode = StatusCodes.Forbidden;
+        return msg;
+    }
+    protected ReqResMessage UnprocessableMessage(ReqResMessage msg)
     {
-        if (invalidData)
-            msg.Response.StatusCode = StatusCodes.UnprocessableContent;
-        else if (msg.Request.HttpMethod != Method)
+        msg.Response.StatusCode = StatusCodes.UnprocessableContent;
+        return msg; 
+    }
+    protected ReqResMessage InvalidMessage(ReqResMessage msg)
+    {
+        if (msg.Request.HttpMethod != Method)
             msg.Response.StatusCode = StatusCodes.MethodNotAllowed;
         else if (msg.Request.Headers.Get("Authorization") == null)
             msg.Response.StatusCode = StatusCodes.Unauthorized;

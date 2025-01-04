@@ -16,6 +16,7 @@ Bonfire is a ChatApp made using .NET and TypeScript.
 ## Progress
 - [x] Setup Backend
 - [ ] Create a functional API
+  - [x] Messages 
   - [ ] Channels
   - [ ] Servers
   - [ ] Friend and Friend Requests

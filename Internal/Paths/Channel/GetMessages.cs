@@ -2,12 +2,13 @@ using System.Text;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
+using MongoDB.Bson;
 
 namespace BonfireServer.Internal.Paths.Channel;
 
-public class SendMessagePath : BasePath
+public class GetMessagesPath : BasePath
 {
-    public override string Method { get; set; } = MethodTypes.Post;
+    public override string Method { get; set; } = MethodTypes.Query;
 
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : default
     {
@@ -15,26 +16,21 @@ public class SendMessagePath : BasePath
             return InvalidMessage(msg);
         if (!IsAuthorized(msg, rawCtx))
             return InvalidMessage(msg);
-        if (rawCtx is not SendMessageContext ctx)
+        if (rawCtx is not GetMessagesContext ctx)
             return InvalidMessage(msg);
 
         var channel = Database.Database.FindChannel(ctx.ChannelId);
-        var author = Database.Database.FindUserByToken(ctx.Token!);
-        var content = ctx.Message;
         
-        if (channel == null || author == null || content == null)
+        if (channel == null)
             return UnprocessableMessage(msg);
 
-        var message = new Message(null);
-        message.Channel = channel;
-        message.Author = author;
-        message.Content = content;
-        
-        Database.Database.SaveMessage(message);
+        var messagesCount = channel.Messages.Count;
+        var lastMessages = channel.Messages.Skip(Math.Max(0, messagesCount - ctx.Count));
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";
         msg.Response.ContentEncoding = Encoding.UTF8;
+        msg.Data = Encoding.UTF8.GetBytes(lastMessages.ToJson());
         return msg;
     }
 }
