@@ -30,6 +30,8 @@ public class SendMessagePath : BasePath
         message.Author = author;
         message.Content = content;
         
+        channel.Messages.Insert(0, message);
+        
         Database.Database.SaveMessage(message);
 
         msg.Response.StatusCode = StatusCodes.Ok;

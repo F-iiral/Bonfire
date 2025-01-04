@@ -3,6 +3,7 @@ using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Database.DatabaseTypes;
 
+[Serializable]
 public class MessageEntry
 {
     public long Id { get; set; }

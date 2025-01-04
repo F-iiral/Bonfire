@@ -1,5 +1,6 @@
 namespace BonfireServer.Internal.Context.Channel;
 
+[Serializable]
 public class EditMessageContext : IBaseContext
 {
     public string? Token { get; set; }

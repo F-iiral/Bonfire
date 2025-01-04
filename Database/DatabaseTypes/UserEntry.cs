@@ -3,26 +3,27 @@ using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Database.DatabaseTypes;
 
+[Serializable]
 public class UserEntry
 {
-    public long Id { get; }
+    public long Id { get; set; }
     public string Name { get; }
-    public ushort Discriminator { get; }
-    public string Email { get; }
+    public ushort Discriminator { get; set; }
+    public string Email { get; set; }
     
-    public byte[] PasswordHash { get; }
-    public byte[] PasswordSalt { get; }
-    public string AuthToken { get; }
+    public byte[] PasswordHash { get; set; }
+    public byte[] PasswordSalt { get; set; }
+    public string AuthToken { get; set; }
     
-    public string? Avatar { get; } = null;
-    public string? Banner { get; } = null;
-    public int Flags { get; } = 0;
+    public string? Avatar { get; set; } = null;
+    public string? Banner { get; set; } = null;
+    public int Flags { get; set; } = 0;
     
-    public Dictionary<long, string> Nicknames { get; }
-    public List<long> Servers { get; }
-    public List<long> Friends { get; }
-    public List<long> FriendRequests { get; }
-    public List<long> DirectMessages { get; }
+    public Dictionary<long, string> Nicknames { get; set; }
+    public List<long> Servers { get; set; }
+    public List<long> Friends { get; set; }
+    public List<long> FriendRequests { get; set; }
+    public List<long> DirectMessages { get; set; }
 
     public UserEntry(User user)
     {

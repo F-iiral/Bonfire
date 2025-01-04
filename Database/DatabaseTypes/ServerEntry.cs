@@ -3,16 +3,17 @@ using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Database.DatabaseTypes;
 
+[Serializable]
 public class ServerEntry
 {
-    public long Id { get; }
+    public long Id { get; set; }
     
-    public string Name { get; }
+    public string Name { get; set; }
     
-    public long Owner { get; }
-    public List<long> Channels { get; }
-    public List<Tuple<long, byte>> Admins { get; }
-    public List<long> Users { get; }
+    public long Owner { get; set; }
+    public List<long> Channels { get; set; }
+    public List<Tuple<long, byte>> Admins { get; set; }
+    public List<long> Users { get; set; }
 
     public ServerEntry(Server server)
     {

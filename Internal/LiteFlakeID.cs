@@ -10,7 +10,7 @@ public class LiteFlakeId
     
     public DateTime GetTimestamp()
     {
-        return new DateTime((Val >> 8) + LiteFlakeIdGenerator.Epoch);
+        return new DateTime((Val >> 16) + LiteFlakeIdGenerator.Epoch);
     }
     
     public static explicit operator long(LiteFlakeId id) => id.Val;
@@ -42,7 +42,7 @@ file static class LiteFlakeIdGenerator
     public const long Epoch = 1672531200;
     private static long LastTimestamp = 0;
     private static long LastSequence = 0;
-    private static readonly byte MaxSequence = 255;
+    private static readonly ushort MaxSequence = ushort.MaxValue;
 
     public static long GenerateId()
     {
@@ -52,7 +52,7 @@ file static class LiteFlakeIdGenerator
         if (currentTimestamp == LastTimestamp)
             currentSequence = (LastSequence + 1) & MaxSequence;
 
-        var uniqueId = (currentTimestamp << 8) | currentSequence;
+        var uniqueId = (currentTimestamp << 16) | currentSequence;
 
         LastTimestamp = currentTimestamp;
         LastSequence = currentSequence;

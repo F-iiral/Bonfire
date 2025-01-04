@@ -65,7 +65,7 @@ public static class Database
     {
        return FindChannel(channelId.Val);
     }
-    public static Channel? FindChannel(long channelId)
+    public static Channel? FindChannel(long channelId, Server? parsedServer=null)
     {
         if (ChannelCache.Get(channelId, out var value))
             return value!;
@@ -77,11 +77,36 @@ public static class Database
             return null;
 
         var channel = new Channel(new LiteFlakeId(data.Id));
-        channel.Server = FindServer(data.Server);
+        channel.Server = parsedServer ?? FindServer(data.Server);
         channel.Name = data.Name;
-        channel.Messages = data.Messages.Select(FindMessage).Where(x => x is not null).ToList()!;
+        var messagesToLoad = data.Messages.Skip(Math.Max(0,  data.Messages.Count - 255));
+        channel.Messages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList()!;
 
         ChannelCache.Add(channel);
+        return channel;
+    }
+
+    public static Channel TryExtendChannelMessages(Channel channel, out bool success)
+    {
+        var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channel.Id.Val);
+        var data = ChannelCollection.Find(expression).FirstOrDefault();
+
+        if (data == null)
+            throw new NullReferenceException("Channel doesnt exist in database but in memory.");
+        
+        const int messagesToLoadCount = 255;
+        var currentLoadedCount = channel.Messages.Count;
+        var messagesToLoad = data.Messages.Skip(currentLoadedCount).Take(messagesToLoadCount).ToList();
+
+        if (messagesToLoad.Count == 0)
+        {
+            success = false;
+            return channel;
+        }
+        
+        var newMessages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList();
+        channel.Messages.AddRange(newMessages!); 
+        success = true;
         return channel;
     }
     
@@ -89,7 +114,7 @@ public static class Database
     {
         return FindMessage(messageId.Val);
     }
-    public static Message? FindMessage(long messageId)
+    public static Message? FindMessage(long messageId, Channel? parsedChannel=null)
     {
         if (MessageCache.Get(messageId, out var value))
             return value!;
@@ -100,7 +125,7 @@ public static class Database
         if (data == null)
             return null;
 
-        var channel = FindChannel(data.Channel);
+        var channel = parsedChannel ?? FindChannel(data.Channel);
         var author = FindUser(data.Author);
             
         if (author == null || channel == null)
@@ -121,6 +146,10 @@ public static class Database
     }
     public static Server? FindServer(long serverId)
     {
+        // DMs
+        if (serverId == 0)
+            return null;
+        
         if (ServerCache.Get(serverId, out var value))
             return value!;
         
@@ -138,7 +167,7 @@ public static class Database
         var server = new Server(new LiteFlakeId(data.Id));
         server.Name = data.Name;
         server.Owner = owner;
-        server.Channels = data.Channels.Select(FindChannel).Where(x => x != null).ToList()!;
+        server.Channels = data.Channels.Select(x => FindChannel(x, server)).Where(x => x != null).ToList()!;
         var admins = data.Admins.Select(x => new Tuple<User?, byte>(FindUser(x.Item1), x.Item2));
         server.Admins = admins.Where(x => x.Item1 is not null).ToList()!;
         server.Users =  data.Users.Select(FindUser).Where(x => x != null).ToList()!;
@@ -182,7 +211,7 @@ public static class Database
         user.Servers = data.Servers.Select(FindServer).Where(x => x != null).ToList()!;
         user.Friends = data.Friends.Select(FindUser).Where(x => x != null).ToList()!;
         user.FriendRequests = data.FriendRequests.Select(FindUser).Where(x => x != null).ToList()!;
-        user.DirectMessages = data.DirectMessages.Select(FindChannel).Where(x => x != null).ToList()!;
+        user.DirectMessages = data.DirectMessages.Select(x => FindChannel(x, null)).Where(x => x != null).ToList()!;
         
         UserCache.Add(user);
         return user;
@@ -194,7 +223,7 @@ public static class Database
         
         var databaseEntry = new ChannelEntry(channel);
         var options = new ReplaceOptions { IsUpsert = true };
-        ChannelCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
+        var result = ChannelCollection.ReplaceOne(x => x.Id == databaseEntry.Id, databaseEntry, options);
     }
     
     public static void SaveMessage(Message message)

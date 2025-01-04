@@ -3,14 +3,15 @@ using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Database.DatabaseTypes;
 
+[Serializable]
 public class ChannelEntry
 {
-    public long Id { get; }
+    public long Id { get; set; }
     
-    public string Name { get; }
+    public string Name { get; set; }
 
-    public long Server { get; }
-    public List<long> Messages { get; }
+    public long Server { get; set; }
+    public List<long> Messages { get; set; }
 
     public ChannelEntry(Channel channel)
     {
