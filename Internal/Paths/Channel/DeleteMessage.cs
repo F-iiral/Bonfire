@@ -27,8 +27,7 @@ public class DeleteMessagePath : BasePath
         if (user != message.Author && !(channel.Server != null && channel.Server.IsModerator(user)))
             return InsufficentPermmissionMessage(msg);
 
-        channel.Messages.Remove(message);
-        Database.Database.DeleteChannel(channel);
+        message.Delete();
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

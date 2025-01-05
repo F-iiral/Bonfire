@@ -1,4 +1,5 @@
 using System.Text;
+using System.Web;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
@@ -25,14 +26,7 @@ public class SendMessagePath : BasePath
         if (channel == null || author == null || content == null)
             return UnprocessableMessage(msg);
 
-        var message = new Message(null);
-        message.Channel = channel;
-        message.Author = author;
-        message.Content = content;
-        
-        channel.Messages.Insert(0, message);
-        
-        Database.Database.SaveMessage(message);
+        Message.Create(content, channel, author);
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

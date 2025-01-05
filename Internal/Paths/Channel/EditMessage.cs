@@ -1,4 +1,5 @@
 using System.Text;
+using System.Web;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
@@ -25,12 +26,10 @@ public class EditMessagePath : BasePath
 
         if (channel == null || user == null || newContent == null || message == null)
             return UnprocessableMessage(msg);
-        if (user != message.Author)
+        if (user != message.Author && !(channel.Server != null && channel.Server.Users.Contains(user)))
             return InsufficentPermmissionMessage(msg);
-        
-        message.Content = newContent;
-        
-        Database.Database.SaveChannel(channel);
+
+        message.Edit(newContent);
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

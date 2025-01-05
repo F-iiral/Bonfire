@@ -20,13 +20,12 @@ public class GetMessagesPath : BasePath
             return InvalidMessage(msg);
 
         var channel = Database.Database.FindChannel(ctx.ChannelId);
-        
+
         if (channel == null)
             return UnprocessableMessage(msg);
-
         if (ctx.Greedy)
             Database.Database.TryExtendChannelMessages(channel, out _);
-        
+
         var messagesCount = channel.Messages.Count;
         var lastMessages = channel.Messages.Skip(Math.Max(0, messagesCount - ctx.Count));
 

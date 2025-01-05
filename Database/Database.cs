@@ -127,10 +127,10 @@ public static class Database
 
         var channel = parsedChannel ?? FindChannel(data.Channel);
         var author = FindUser(data.Author);
-            
+  
         if (author == null || channel == null)
             return null;
-        
+
         var message = new Message(new LiteFlakeId(data.Id));
         message.Channel = channel;
         message.Author = author;
