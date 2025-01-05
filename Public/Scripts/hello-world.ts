@@ -1,7 +1,9 @@
 import {ServerUser, User} from "./Common/User.js";
 import {Server} from "./Common/Server.js";
 import {Channel} from "./Common/Channel.js";
-import {Post} from "./Common/Server/HttpConnections";
+import {Post} from "./Common/Server/HttpConnections.js";
+import {parseFormattedText} from "./Common/Helpers/Markdown.js";
+import ReactDOM from "react-dom";
 
 // Example Code :3
 let user = new User("1", "New User", 0, 0);
@@ -26,3 +28,13 @@ async function foo() {
     return Post<null, {}>("api/v1/channel/send_message", {})
 }
 console.log(await foo());
+
+const inputText = "This is **bold** text. This is **another bold text**. This is *italic*, and this is ***both***.";
+const outputElement = parseFormattedText(inputText);
+const textPart = document.createElement('p');
+ReactDOM.render(outputElement, textPart);
+
+const parent = document.getElementById("exampleEdit")
+if (parent) {
+    parent.appendChild(textPart);
+}

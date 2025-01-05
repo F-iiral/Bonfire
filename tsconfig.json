@@ -3,9 +3,13 @@
     "target": "es2022",
     "module": "es2022",
     "lib": ["es2022", "DOM"],
+    "jsx": "react",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "compilerOptions": {
+      "jsx": "react"
+    }
   }
 }
