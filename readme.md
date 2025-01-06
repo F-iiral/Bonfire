@@ -1,5 +1,5 @@
 # Bonfire
-Bonfire is a ChatApp made using .NET and TypeScript.
+Bonfire is a lightweight ChatApp made using .NET and TypeScript.
 
 ## Installation Guide
 1. Clone the repository.
@@ -12,6 +12,8 @@ Bonfire is a ChatApp made using .NET and TypeScript.
 ## Dependencies
 - [MongoDB](https://www.mongodb.com/try/download/community)
 - [TypeScript Compiler](https://www.typescriptlang.org/download/)
+- [React](https://react.dev/)
+- [highlight.js](https://highlightjs.org/)
 
 ## Progress
 - [x] Setup Backend
@@ -23,7 +25,7 @@ Bonfire is a ChatApp made using .NET and TypeScript.
   - [ ] User Statuses, Bio, etc.
 - [ ] Create a user-friendly frontend
     - [ ] Keep everything cozy!!
-    - [ ] Markdown
+    - [x] Markdown
     - [ ] Channels
     - [ ] Servers
     - [ ] Friend and Friend Requests

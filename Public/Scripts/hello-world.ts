@@ -1,40 +1,60 @@
-import {ServerUser, User} from "./Common/User.js";
-import {Server} from "./Common/Server.js";
-import {Channel} from "./Common/Channel.js";
-import {Post} from "./Common/Server/HttpConnections.js";
 import {parseFormattedText} from "./Common/Helpers/Markdown.js";
 import ReactDOM from "react-dom";
 
+const startTime = performance.now()
+
 // Example Code :3
-let user = new User("1", "New User", 0, 0);
-let serverUser = user as ServerUser;
-serverUser.nickname = null;
-serverUser.permissionLevel = 0;
-
-let channelOne = new Channel("1", "Channel One", null, []);
-let channelTwo = new Channel("2", "Channel Two", null, []);
-
-let server = new Server("1", "New Server", serverUser, [channelOne, channelTwo], [serverUser], [serverUser]);
-channelOne.server = server;
-channelTwo.server = server;
-
-console.log(server);
-console.log(channelOne)
-console.log(channelTwo)
-console.log(user);
-console.log("Hello World!");
-
-async function foo() {
-    return Post<null, {}>("api/v1/channel/send_message", {})
-}
-console.log(await foo());
-
-const inputText = "This is **bold** text. This is **another bold text**. This is *italic*, and this is ***both***.";
+const inputText = "This is **bold** text. " +
+    "This is *italic* text. " +
+    "This is __underlined__ text. " +
+    "This is ~~strikethrough~~ text. " +
+    "This is ***bold and italic*** text. " +
+    "This is __**bold and underlined**__ text. " +
+    "This is ~~**bold and strikethrough**~~ text. " +
+    "This is __*italic and underlined*__ text. " +
+    "This is ~~*italic and strikethrough*~~ text. " +
+    "This is __~~strikethrough and underlined~~__ text. " +
+    "This is __***bold, italic and underlined***__ text. " +
+    "This is ~~***bold, italic and strikethrough***~~ text. " +
+    "This is __~~***all of it***~~__ text. " +
+    "Here should be a\n break." +
+    "\n" +
+    "Oh hey look at this [Example Link](https://www.example.com)!" +
+    "\n" +
+    "```ts\n" + 
+    "function parseCodeBlockText(text: string): JSX.Element[] {\n" +
+    "    text = text.replaceAll(\"``\", \"\");\n" +
+    "    const languages = text.match(/^.*$/m);\n" +
+    "    const language = languages ? languages[0] : \"\"; \n" +
+    "    const highlightedText: string = hljs.highlight(text, {language: language}).value;\n" +
+    "    const regex = /$\\n|[^\\n]+/gm\n" +
+    "    const parts = highlightedText.match(regex);\n" +
+    "\n" +
+    "    if (!parts)\n" +
+    "        return [<></>];\n" +
+    "\n" +
+    "    const output = parts.map((part, index) => {\n" +
+    "        if (part.match(/$\\n/m)) {\n" +
+    "            if (index == 0)\n" +
+    "                return;\n" +
+    "            return <br key={index}></br>;\n" +
+    "        }\n" +
+    "        return <span dangerouslySetInnerHTML={{ __html: part, }}></span>;\n" +
+    "    });\n" +
+    "\n" +
+    "    // highlighter.js is trustworthy\n" +
+    "    return [<code>{output}</code>];\n" +
+    "}\n" +
+    "```"
+;
 const outputElement = parseFormattedText(inputText);
 const textPart = document.createElement('p');
 ReactDOM.render(outputElement, textPart);
 
-const parent = document.getElementById("exampleEdit")
+const parent = document.getElementById("content")
 if (parent) {
     parent.appendChild(textPart);
 }
+
+const endTime = performance.now()
+console.log(`Took ${endTime - startTime}ms`)
