@@ -6,7 +6,7 @@ namespace BonfireServer.Internal.Common;
 
 public class User(LiteFlakeId? id) : ICachableType
 {
-    public LiteFlakeId Id { get; protected set; } = id ?? new LiteFlakeId();
+    public LiteFlakeId Id { get; set; } = id ?? new LiteFlakeId();
     public string Name { get; set; }
     public ushort Discriminator { get; set; }
     public string Email { get; set; }

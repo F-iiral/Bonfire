@@ -6,7 +6,7 @@ namespace BonfireServer.Internal.Common;
 
 public class Server(LiteFlakeId? id) : ICachableType
 {
-    public LiteFlakeId Id { get; } = id ?? new LiteFlakeId();
+    public LiteFlakeId Id { get; set; } = id ?? new LiteFlakeId();
 
     public string Name { get; set; }
     

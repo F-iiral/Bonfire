@@ -42,6 +42,6 @@ file static class AuthTokeGenerator
         var timestamp64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(DateTime.Now.ToBinary().ToString()));
         var signature64 = Secret.ComputeHash(Encoding.UTF8.GetBytes(id64)).ToString();
 
-        return $"{id64}.{timestamp64}.{signature64}".Replace(".System.Byte[]", "");
+        return $"{id64}.{timestamp64}.{signature64}";       // ToDo: Find out why the timestamp doesnt save??
     }
 }

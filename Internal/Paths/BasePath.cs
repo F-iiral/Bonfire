@@ -1,12 +1,23 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
+using BonfireServer.Internal.Converters;
 
 namespace BonfireServer.Internal.Paths;
 
 public abstract class BasePath
 {
     public abstract string Method { get; set; }
+    public static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    {
+        Converters = { new LiteFlakeIdJsonConverter() },
+        PropertyNameCaseInsensitive = true,
+        IgnoreReadOnlyProperties = true,
+        IgnoreReadOnlyFields = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+    };
 
     protected ReqResMessage UnauthorizedTokenMessage(ReqResMessage msg)
     {

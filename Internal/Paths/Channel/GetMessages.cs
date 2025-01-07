@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
+using BonfireServer.Internal.Converters;
 using MongoDB.Bson;
 
 namespace BonfireServer.Internal.Paths.Channel;
@@ -33,14 +34,7 @@ public class GetMessagesPath : BasePath
         msg.Response.ContentType = "application/json";
         msg.Response.ContentEncoding = Encoding.UTF8;
         
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            IgnoreReadOnlyProperties = true,
-            IgnoreReadOnlyFields = true,
-            ReferenceHandler = ReferenceHandler.IgnoreCycles,
-        };
-        msg.Data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(lastMessages, options));
+        msg.Data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(lastMessages, JsonOptions));
         return msg;
     }
 }
