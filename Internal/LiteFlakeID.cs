@@ -1,7 +1,7 @@
 namespace BonfireServer.Internal;
-#pragma warning disable CS0660, CS0661
 
-public class LiteFlakeId
+[Serializable]
+public readonly record struct LiteFlakeId
 {
     public readonly long Val = LiteFlakeIdGenerator.GenerateId();
 
@@ -15,8 +15,6 @@ public class LiteFlakeId
     
     public static explicit operator long(LiteFlakeId id) => id.Val;
     
-    public static bool operator ==(LiteFlakeId a, LiteFlakeId b) => a.Val == b.Val;
-    public static bool operator !=(LiteFlakeId a, LiteFlakeId b) => !(a == b);
     public static bool operator >=(LiteFlakeId a, LiteFlakeId b) => a.Val >= b.Val;
     public static bool operator <=(LiteFlakeId a, LiteFlakeId b) => a.Val <= b.Val;
     public static bool operator >(LiteFlakeId a, LiteFlakeId b)  => a.Val > b.Val;

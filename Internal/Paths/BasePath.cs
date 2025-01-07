@@ -1,3 +1,4 @@
+using System.Text;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
 
@@ -6,8 +7,13 @@ namespace BonfireServer.Internal.Paths;
 public abstract class BasePath
 {
     public abstract string Method { get; set; }
-    
-    protected ReqResMessage InsufficentPermmissionMessage(ReqResMessage msg) {
+
+    protected ReqResMessage UnauthorizedTokenMessage(ReqResMessage msg)
+    {
+        msg.Response.StatusCode = StatusCodes.Unauthorized;
+        return msg;
+    }
+    protected ReqResMessage InsufficientPermissionMessage(ReqResMessage msg) {
         msg.Response.StatusCode = StatusCodes.Forbidden;
         return msg;
     }
@@ -34,7 +40,23 @@ public abstract class BasePath
 
     protected bool IsAuthorized<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext
     {
-        return rawCtx != null && rawCtx.Token != null;    // ToDo: Add Authorization check
+        if (rawCtx == null || rawCtx.Token == null)
+            return false;
+
+        var splitToken = rawCtx.Token.Split('.');
+        if (splitToken.Length != 4)
+            return false;
+        
+//        var timestamp = (Encoding.UTF8.GetString(Convert.FromBase64String(splitToken[1])));
+//        Logger.Info(timestamp.ToString());
+//        if (timestamp > DateTime.Now.ToUniversalTime().Ticks - 28 * 24 * 60 * 60)
+//            return false;
+        
+        var user = Database.Database.FindUserByToken(rawCtx.Token);
+        if (user == null)
+            return false;
+        
+        return user.AuthToken == rawCtx.Token;
     }
 
     public abstract ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : IBaseContext;

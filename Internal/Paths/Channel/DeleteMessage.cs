@@ -11,12 +11,10 @@ public class DeleteMessagePath : BasePath
 
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : default
     {
-        if (!IsValid(msg, rawCtx))
+        if (!IsValid(msg, rawCtx) || rawCtx is not DeleteMessageContext ctx)
             return InvalidMessage(msg);
         if (!IsAuthorized(msg, rawCtx))
-            return InvalidMessage(msg);
-        if (rawCtx is not DeleteMessageContext ctx)
-            return InvalidMessage(msg);
+            return UnauthorizedTokenMessage(msg);
 
         var channel = Database.Database.FindChannel(ctx.ChannelId);
         var user = Database.Database.FindUserByToken(ctx.Token!);
@@ -25,7 +23,7 @@ public class DeleteMessagePath : BasePath
         if (channel == null || user == null || message == null)
             return UnprocessableMessage(msg);
         if (user != message.Author && !(channel.Server != null && channel.Server.IsModerator(user)))
-            return InsufficentPermmissionMessage(msg);
+            return InsufficientPermissionMessage(msg);
 
         message.Delete();
 

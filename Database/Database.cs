@@ -1,3 +1,4 @@
+using System.Text;
 using BonfireServer.Database.DatabaseTypes;
 using BonfireServer.Internal;
 using BonfireServer.Internal.Common;
@@ -178,7 +179,15 @@ public static class Database
 
     public static User? FindUserByToken(string token)
     {
-        return FindUser(0); // ToDo: Token Parsing
+        var splitToken = token.Split('.');
+        if (splitToken.Length != 4)
+            return null;
+        
+        var success = long.TryParse(Encoding.UTF8.GetString(Convert.FromBase64String(splitToken[0])), out var id);
+        if (!success)
+            return null;
+        
+        return FindUser(id);
     }
     public static User? FindUser(LiteFlakeId userId)
     {
@@ -201,7 +210,7 @@ public static class Database
         user.Email = data.Email;
         user.PasswordHash = data.PasswordHash;
         user.PasswordSalt = data.PasswordSalt;
-        user.AuthToken = data.AuthToken;
+        user.AuthToken = new AuthToken(data.AuthToken);
         user.Avatar = data.Avatar;
         user.Banner = data.Banner;
         user.Flags = data.Flags;

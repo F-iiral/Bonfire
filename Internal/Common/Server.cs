@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BonfireServer.Database;
 using BonfireServer.Internal.Const;
 
@@ -10,9 +11,9 @@ public class Server(LiteFlakeId? id) : ICachableType
     public string Name { get; set; }
     
     public User Owner { get; set; }
-    public List<Channel> Channels { get; set; } = [];
-    public List<Tuple<User, byte>> Admins { get; set; } = [];
-    public List<User> Users { get; set; } = [];
+    [JsonIgnore] public List<Channel> Channels { get; set; } = [];
+    [JsonIgnore] public List<Tuple<User, byte>> Admins { get; set; } = [];
+    [JsonIgnore] public List<User> Users { get; set; } = [];
 
     public bool IsVerifiedMember(User user)
     {

@@ -9,6 +9,7 @@ using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Context.Channel;
 using BonfireServer.Internal.Paths.Channel;
 using BonfireServer.Test;
+using DotNetEnv;
 
 namespace BonfireServer;
 
@@ -195,7 +196,7 @@ internal abstract class HttpServer
 
         foreach (var filePath in Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories))
         {
-            if (Path.GetExtension(filePath) == ".ts" )
+            if (Path.GetExtension(filePath) is ".ts" or ".tsx")
                 continue;
             
             var filename = Path.GetFileName(filePath);
@@ -209,6 +210,10 @@ internal abstract class HttpServer
         Listener.Prefixes.Add(BaseUrl);
         Listener.Start();
         Logger.Info($"Listening for connections on {BaseUrl}");
+        
+        // Generate a token so that we know a SECRET is set
+        var _ = new AuthToken(new LiteFlakeId());
+        Logger.Info(_.Val);
         
         // Start the Database so that the static constructor is called
         Database.Database.CreateIndexes();

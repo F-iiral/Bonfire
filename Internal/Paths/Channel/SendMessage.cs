@@ -12,12 +12,10 @@ public class SendMessagePath : BasePath
 
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : default
     {
-        if (!IsValid(msg, rawCtx))
+        if (!IsValid(msg, rawCtx) || rawCtx is not SendMessageContext ctx)
             return InvalidMessage(msg);
         if (!IsAuthorized(msg, rawCtx))
-            return InvalidMessage(msg);
-        if (rawCtx is not SendMessageContext ctx)
-            return InvalidMessage(msg);
+            return UnauthorizedTokenMessage(msg);
 
         var channel = Database.Database.FindChannel(ctx.ChannelId);
         var author = Database.Database.FindUserByToken(ctx.Token!);

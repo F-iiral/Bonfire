@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
@@ -12,13 +14,11 @@ public class GetMessagesPath : BasePath
 
     public override ReqResMessage Execute<T>(ReqResMessage msg, T? rawCtx) where T : default
     {
-        if (!IsValid(msg, rawCtx))
+        if (!IsValid(msg, rawCtx) || rawCtx is not GetMessagesContext ctx)
             return InvalidMessage(msg);
         if (!IsAuthorized(msg, rawCtx))
-            return InvalidMessage(msg);
-        if (rawCtx is not GetMessagesContext ctx)
-            return InvalidMessage(msg);
-
+            return UnauthorizedTokenMessage(msg);
+        
         var channel = Database.Database.FindChannel(ctx.ChannelId);
 
         if (channel == null)
@@ -32,7 +32,15 @@ public class GetMessagesPath : BasePath
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";
         msg.Response.ContentEncoding = Encoding.UTF8;
-        msg.Data = Encoding.UTF8.GetBytes(lastMessages.ToJson());
+        
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            IgnoreReadOnlyProperties = true,
+            IgnoreReadOnlyFields = true,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        };
+        msg.Data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(lastMessages, options));
         return msg;
     }
 }

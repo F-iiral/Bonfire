@@ -7,7 +7,7 @@ namespace BonfireServer.Database.DatabaseTypes;
 public class UserEntry
 {
     public long Id { get; set; }
-    public string Name { get; }
+    public string Name { get; set; }
     public ushort Discriminator { get; set; }
     public string Email { get; set; }
     
@@ -33,7 +33,7 @@ public class UserEntry
         Email = user.Email;
         PasswordHash = user.PasswordHash;
         PasswordSalt = user.PasswordSalt;
-        AuthToken = user.AuthToken;
+        AuthToken = user.AuthToken.Val;
         Avatar = user.Avatar;
         Banner = user.Banner;
         Flags = user.Flags;

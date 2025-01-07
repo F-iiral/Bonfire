@@ -10,9 +10,9 @@ public static class DatabaseTesting
     {
         Logger.Info("The Server will now create a database for testing purposes. It contains 1 server, 1 user, 50 channels and 50k Messages. This may take a moment.");
         Database.Database.CreateIndexes();
-
-        var user = new User(null);
-        user.Name = "Debug User";
+        
+        var user = User.RegisterNewUser($"Debug User", "example@email.com", $"password");
+        Database.Database.SaveUser(user);
         
         var server = new Server(null);
         server.Name = "Debug Server";
@@ -26,6 +26,7 @@ public static class DatabaseTesting
             Logger.Info($"Starting Channel #{i}");
             var channel = new Channel(null);
             channel.Name = $"Debug Channel #{i}";
+            channel.Server = server;
             server.Channels.Add(channel);
             
             for (var j = 0; j < 1000; j++)
@@ -55,14 +56,12 @@ public static class DatabaseTesting
         var users = new List<User>();
         for (var u = 0; u < 200; u++)
         {
-            var user = new User(null);
-            user.Name = $"Debug User {u}";
-            users.Add(user);
+            var user = User.RegisterNewUser($"Debug User {u}", "example@email.com", $"password{u}");
             Database.Database.SaveUser(user);
         }
 
         var random = new Random();
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < 10; i++)
         {
             var server = new Server(null);
             server.Name = $"Debug Server #{i}";
@@ -88,6 +87,7 @@ public static class DatabaseTesting
                 Logger.Info($"Starting Channel #{j} @ Server #{i}");
                 var channel = new Channel(null);
                 channel.Name = $"Debug Channel #{j}";
+                channel.Server = server;
                 server.Channels.Add(channel);
                 
                 for (var k = 0; k < 1000; k++)
