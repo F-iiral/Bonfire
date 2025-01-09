@@ -17,11 +17,12 @@ internal abstract class HttpServer
 {
     private static readonly HttpListener Listener = new();
     private static readonly string BaseUrl = "http://localhost:8000/";
-    private static readonly Dictionary<string, byte[]> Files = new();
+    private static readonly Dictionary<string, Tuple<byte[], long>> Files = new();
     private static readonly Regex PublicFileRegex = new(@"\/public\/(styles|scripts|pages)\/", RegexOptions.Compiled & RegexOptions.IgnoreCase);
     private static readonly JsonSerializerOptions JsonOptions = new(){ PropertyNameCaseInsensitive = true, AllowTrailingCommas = true };
 
-    public static byte[]? GetFile(string name) => Files.GetValueOrDefault(name);
+    public static byte[]? GetFile(string name) => Files.GetValueOrDefault(name)?.Item1;
+    public static long GetFileDate(string name) => Files.GetValueOrDefault(name)?.Item2 ?? 0;
 
     private static T? DeserializeBody<T>(ReqResMessage msg) where T : IBaseContext
     {
@@ -86,6 +87,9 @@ internal abstract class HttpServer
         {
             var fileName = msg.Request.RawUrl!.Split("/").Last();
             var fileExtension = Path.GetExtension(fileName);
+            var data = GetFile(fileName);
+            var lastModified = GetFileDate(fileName);
+            var ifModifiedSince = msg.Request.Headers.GetValues("If-Modified-Since")?[0] ?? "0";
             var contentType = fileExtension switch
             {
                 ".js" => "text/javascript",
@@ -94,17 +98,21 @@ internal abstract class HttpServer
                 _ => "text/plain"
             };
 
-            var data = GetFile(fileName);
-
             if (data == null)
             {
                 msg.Response.StatusCode = StatusCodes.NotFound;
+                return msg;
+            }
+            if ((DateTime.FromBinary(long.Parse(ifModifiedSince)).Ticks >= lastModified))
+            {
+                msg.Response.StatusCode = StatusCodes.NotModified;
                 return msg;
             }
             
             msg.Response.StatusCode = StatusCodes.Ok;
             msg.Response.ContentType = contentType;
             msg.Response.ContentEncoding = Encoding.UTF8;
+            msg.Response.Headers["Last-Modified"] = lastModified.ToString("R");
             msg.Data = data;
             return msg;
         }
@@ -119,7 +127,7 @@ internal abstract class HttpServer
                 msg.Response.StatusCode = StatusCodes.Ok;
                 msg.Response.ContentType = "text/html";
                 msg.Response.ContentEncoding = Encoding.UTF8;
-                msg.Data = Files["main.html"];
+                msg.Data = Files["main.html"]?.Item1 ?? [];
                 break;
             case "/favicon.ico":
                 msg.Response.StatusCode = StatusCodes.NotImplemented;
@@ -201,7 +209,7 @@ internal abstract class HttpServer
             
             var filename = Path.GetFileName(filePath);
             Logger.Info($"Loading '{filename}' ...");
-            Files[filename] = File.ReadAllBytes(filePath);
+            Files[filename] = new (File.ReadAllBytes(filePath), File.GetLastWriteTime(filePath).Ticks);
         }
     }
     
