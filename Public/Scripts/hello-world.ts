@@ -1,4 +1,5 @@
 import {parseFormattedText} from "./Common/Helpers/Markdown.js";
+import {Query} from "./Common/Server/HttpConnections.js";
 import ReactDOM from "react-dom";
 
 const startTime = performance.now()
@@ -58,3 +59,21 @@ if (parent) {
 
 const endTime = performance.now()
 console.log(`Took ${endTime - startTime}ms`)
+
+const messages = await Query<[], {}>("/api/v1/channel/get_messages", {
+    "ChannelId": 4177598349313
+})
+console.log(messages)
+if (messages != null) {
+    for (const message of messages) {
+        // @ts-ignore
+        const outputElement = parseFormattedText(message.Content);
+        const textPart = document.createElement('p');
+        ReactDOM.render(outputElement, textPart);
+
+        const parent = document.getElementById("content")
+        if (parent) {
+            parent.appendChild(textPart);
+        }
+    }
+}
