@@ -7,7 +7,9 @@ using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Context.Channel;
+using BonfireServer.Internal.Context.User;
 using BonfireServer.Internal.Paths.Channel;
+using BonfireServer.Internal.Paths.User;
 using BonfireServer.Test;
 using DotNetEnv;
 
@@ -136,6 +138,12 @@ internal abstract class HttpServer
             ///////////////////////////////////////
             // APPLICATION PROGRAMMING INTERFACE //
             ///////////////////////////////////////
+
+            // Account Scope API
+            case "/api/v1/account/get_self_user":
+                var getSelfUserCtx = DeserializeBody<GetSelfUserContext>(msg);
+                new GetSelfUserPath().Execute(msg, getSelfUserCtx);
+                break;
             
             // Channel Scope API
             case "/api/v1/channel/get_messages":

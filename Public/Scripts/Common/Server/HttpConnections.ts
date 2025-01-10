@@ -3,7 +3,7 @@ import {getCookie} from "../Helpers/Cookies.js";
 function Connect<TBody, TResponse>(url: string, body: TBody, method: string): Promise<TResponse | null> {
     return fetch(url, { 
         method: method, 
-        body: JSON.stringify(body),
+        body: method != "GET" ? JSON.stringify(body) : null,
         headers: {
             "Content-Type": "application/json",
             "Authorization": `${getCookie('token') ?? ''}`

@@ -33,7 +33,6 @@ public class GetMessagesPath : BasePath
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";
         msg.Response.ContentEncoding = Encoding.UTF8;
-        
         msg.Data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(lastMessages, JsonOptions));
         return msg;
     }

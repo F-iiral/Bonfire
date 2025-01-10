@@ -26,35 +26,6 @@ export class User {
     }
 }
 
-export class SelfUser extends User {
-    public nicknames: Map<string, string>;
-    public servers: string[];
-    public friends: string[];
-    public friendRequests: string[];
-    public directMessages: string[];
-    
-    constructor(id: string,
-                name: string,
-                discriminator: number,
-                flags: number,
-                nicknames: Map<string, string>,
-                servers: string[],
-                friends: string[],
-                friendsRequests: string[],
-                directMessages: string[],
-                avatar?:string | null,
-                banner?: string | null
-    ) {
-        super(id, name, discriminator, flags, avatar, banner);
-        
-        this.nicknames = nicknames;
-        this.servers = servers;
-        this.friends = friends;
-        this.friendRequests = friendsRequests;
-        this.directMessages = directMessages;
-    }
-}
-
 export class ServerUser extends User {
     public nickname: string | null;
     public permissionLevel: number;

@@ -1,6 +1,8 @@
 import {parseFormattedText} from "./Common/Helpers/Markdown.js";
-import {Query} from "./Common/Server/HttpConnections.js";
+import {Get, Query} from "./Common/Server/HttpConnections.js";
 import ReactDOM from "react-dom";
+import {SelfUserContent} from "./Content/Account/SelfUser";
+import {GetMessagesContext} from "./Context/Channel/GetMessages.js";
 
 const startTime = performance.now()
 
@@ -60,9 +62,8 @@ if (parent) {
 const endTime = performance.now()
 console.log(`Took ${endTime - startTime}ms`)
 
-const messages = await Query<[], {}>("/api/v1/channel/get_messages", {
-    "ChannelId": 4177598349313
-})
+// @ts-ignore
+const messages = await Query<[], GetMessagesContext>("/api/v1/channel/get_messages", new GetMessagesContext(4177598349313))
 console.log(messages)
 if (messages != null) {
     for (const message of messages) {
@@ -77,3 +78,6 @@ if (messages != null) {
         }
     }
 }
+
+const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
+console.log(accountData)
