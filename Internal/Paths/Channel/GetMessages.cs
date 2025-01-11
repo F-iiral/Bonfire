@@ -19,16 +19,15 @@ public class GetMessagesPath : BasePath
             return InvalidMessage(msg);
         if (!IsAuthorized(msg, rawCtx))
             return UnauthorizedTokenMessage(msg);
-        
+
         var channel = Database.Database.FindChannel(ctx.ChannelId);
 
         if (channel == null)
             return UnprocessableMessage(msg);
         if (ctx.Greedy)
-            Database.Database.TryExtendChannelMessages(channel, out _);
+            Database.Database.TryExtendChannelMessages(channel, out _, ctx.Before);
 
-        var messagesCount = channel.Messages.Count;
-        var lastMessages = channel.Messages.Skip(Math.Max(0, messagesCount - ctx.Count));
+        var lastMessages = channel.Messages.Where(m => m.Id < ctx.Before).Take(ctx.Count).ToList();
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

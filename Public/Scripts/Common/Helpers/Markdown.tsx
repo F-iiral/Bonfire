@@ -132,7 +132,7 @@ export function parseFormattedText(text: string): JSX.Element {
     // ^-.+$\n                 - Matches lists
     // ^>.+$\n                  - Matches blockquotes
     // .+                       - Matches everything else
-    const richTextRegex = /^-.+$\n|^>.+$\n|.+\n/gm
+    const richTextRegex = /^-.+$\n|^>.+$\n|.+\n?/gm
     const parts = text.match(codeBoxRegex);
     
     if (!parts)
@@ -142,11 +142,10 @@ export function parseFormattedText(text: string): JSX.Element {
         if (part.match(/```(?:[^`]|`(?!``))*```/))
             return <span key={index}>{parseCodeBlockText(part)}</span>;
 
-        var newParts = part.match(richTextRegex)
+        let newParts = part.match(richTextRegex)
 
         if (!newParts)
             return <></>;
-        console.log(newParts)
         
         return newParts.map((part, index) => {
             if (part.match(/^-.+$\n/gm))

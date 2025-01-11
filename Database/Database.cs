@@ -96,33 +96,37 @@ public static class Database
         
         channel.Server = parsedServer ?? FindServer(data.Server);
         channel.Name = data.Name;
-        var messagesToLoad = data.Messages.Skip(Math.Max(0,  data.Messages.Count - 255));
-        channel.Messages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList()!;
+        //var messagesToLoad = data.Messages.Skip(Math.Max(0,  data.Messages.Count - 255));
+        //channel.Messages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList()!;
 
         ChannelCache.Add(channel);
         return channel;
     }
 
-    public static Channel TryExtendChannelMessages(Channel channel, out bool success)
+    public static Channel TryExtendChannelMessages(Channel channel, out bool success, long beforeId = 0)
     {
         var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channel.Id.Val);
         var data = ChannelCollection.Find(expression).FirstOrDefault();
 
         if (data == null)
-            throw new NullReferenceException("Channel doesnt exist in database but in memory.");
-        
+            throw new NullReferenceException("Channel doesn't exist in the database but is in memory.");
+
         const int messagesToLoadCount = 255;
         var currentLoadedCount = channel.Messages.Count;
-        var messagesToLoad = data.Messages.Skip(currentLoadedCount).Take(messagesToLoadCount).ToList();
+
+        var messagesToLoad = beforeId != 0
+            ? data.Messages.Where(x => x < beforeId).Take(messagesToLoadCount).ToList()
+            : data.Messages.Skip(currentLoadedCount).Take(messagesToLoadCount).ToList();
 
         if (messagesToLoad.Count == 0)
         {
             success = false;
             return channel;
         }
-        
+
         var newMessages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList();
-        channel.Messages.AddRange(newMessages!); 
+        channel.Messages.AddRange(newMessages!);
+        channel.Messages = channel.Messages.OrderByDescending(x => x.Id).ToList();
         success = true;
         return channel;
     }

@@ -1,7 +1,7 @@
 namespace BonfireServer.Internal;
 
 [Serializable]
-public readonly record struct LiteFlakeId
+public readonly record struct LiteFlakeId : IComparable<LiteFlakeId>, IEquatable<LiteFlakeId>
 {
     public readonly long Val = LiteFlakeIdGenerator.GenerateId();
 
@@ -33,6 +33,11 @@ public readonly record struct LiteFlakeId
     public static bool operator <=(long a, LiteFlakeId b) => a <= b.Val;
     public static bool operator >(long a, LiteFlakeId b)  => a > b.Val;
     public static bool operator <(long a, LiteFlakeId b)  => a < b.Val;
+
+    public int CompareTo(LiteFlakeId other)
+    {
+        return Val.CompareTo(other.Val);
+    }
 }
 
 file static class LiteFlakeIdGenerator

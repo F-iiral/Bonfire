@@ -7,4 +7,5 @@ public class GetMessagesContext : IBaseContext
     public byte Count { get; set; } = 64;
     public long ChannelId { get; set; }
     public bool Greedy { get; set; }
+    public long Before { get; set; } = long.MaxValue;
 }

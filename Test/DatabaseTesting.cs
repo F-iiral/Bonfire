@@ -56,8 +56,9 @@ public static class DatabaseTesting
         var users = new List<User>();
         for (var u = 0; u < 200; u++)
         {
-            var user = User.RegisterNewUser($"Debug User {u}", "example@email.com", $"password{u}");
-            Database.Database.SaveUser(user);
+            Logger.Info($"Creating User #{u}");
+            var user = User.RegisterNewUser($"Debug User {u}", $"example{u}@email.com", $"password{u}");
+            users.Add(user);
         }
 
         var random = new Random();
@@ -65,10 +66,14 @@ public static class DatabaseTesting
         {
             var server = new Server(null);
             server.Name = $"Debug Server #{i}";
+            Logger.Info($"Creating Server #{i}");
             
             server.Owner = users[random.Next(0, users.Count)];
-            server.Users.Add(server.Owner);
+            server.Users.AddRange(users);
             server.Admins.Add(new(server.Owner, AdminLevels.Owner));
+            
+            foreach (var user in users) 
+                user.Servers.Add(server);
             
             var additionalAdminsCount = random.Next(1, 20);
             for (var a = 0; a < additionalAdminsCount; a++)
@@ -106,6 +111,11 @@ public static class DatabaseTesting
             }
             
             Database.Database.SaveServer(server);
+        }
+
+        foreach (var user in users)
+        {
+            Database.Database.SaveUser(user);
         }
     }
 

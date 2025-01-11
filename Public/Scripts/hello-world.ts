@@ -4,7 +4,11 @@ import ReactDOM from "react-dom";
 import {SelfUserContent} from "./Content/Account/SelfUser";
 import {GetMessagesContext} from "./Context/Channel/GetMessages.js";
 
-const startTime = performance.now()
+const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
+console.log(accountData)
+
+const messages1 = await Query<[], GetMessagesContext>("api/v1/channel/get_messages", new GetMessagesContext(4198290620417, 255, true))
+const messages2 = await Query<[], GetMessagesContext>("api/v1/channel/get_messages", new GetMessagesContext(4198290620417, 255, true, 4198290621363))
 
 // Example Code :3
 const inputText = "This is **bold** text. " +
@@ -30,7 +34,7 @@ const inputText = "This is **bold** text. " +
     "\n" +
     "Oh hey look at this [Example Link](https://www.example.com)!" +
     "\n" +
-    "```ts\n" + 
+    "```ts\n" +
     "function parseCodeBlockText(text: string): JSX.Element[] {\n" +
     "    text = text.replaceAll(\"``\", \"\");\n" +
     "    const languages = text.match(/^.*$/m);\n" +
@@ -54,8 +58,7 @@ const inputText = "This is **bold** text. " +
     "    // highlighter.js is trustworthy\n" +
     "    return [<code>{output}</code>];\n" +
     "}\n" +
-    "```"
-;
+    "```";
 const outputElement = parseFormattedText(inputText);
 const textPart = document.createElement('p');
 ReactDOM.render(outputElement, textPart);
@@ -65,13 +68,9 @@ if (parent) {
     parent.appendChild(textPart);
 }
 
-const endTime = performance.now()
-console.log(`Took ${endTime - startTime}ms`)
-
-// @ts-ignore
-const messages = await Query<[], GetMessagesContext>("/api/v1/channel/get_messages", new GetMessagesContext(4177598349313))
-console.log(messages)
-if (messages != null) {
+if (messages1 != null && messages2 != null) {
+    const messages = messages1.concat(messages2);
+    
     for (const message of messages) {
         // @ts-ignore
         const outputElement = parseFormattedText(message.Content);
@@ -84,6 +83,3 @@ if (messages != null) {
         }
     }
 }
-
-const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
-console.log(accountData)
