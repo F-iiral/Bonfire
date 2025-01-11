@@ -2,17 +2,17 @@ import {User} from "./User";
 import {Channel} from "./Channel";
 
 export class Message {
-    get id(): string {
+    get id(): number {
         return this._id;
     }
-    protected _id: string;
+    protected _id: number;
     
     public channel: Channel;
     public author: User;
     public content: string | null;
     
     constructor(
-        id: string,
+        id: number,
         channel: Channel,
         author: User,
         content: string | null

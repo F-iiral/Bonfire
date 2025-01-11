@@ -17,6 +17,10 @@ public static class Database
     private static readonly DatabaseCache<Message> MessageCache;
     private static readonly DatabaseCache<Server> ServerCache;
     private static readonly DatabaseCache<User> UserCache;
+    private static readonly Dictionary<long, Channel> PreloadedChannels = new();
+    private static readonly Dictionary<long, Message> PreloadedMessages = new();
+    private static readonly Dictionary<long, Server> PreloadedServers = new();
+    private static readonly Dictionary<long, User> PreloadedUsers = new();
     
     static Database()
     {
@@ -47,6 +51,14 @@ public static class Database
         }
     }
 
+    private static void ClearPreloadedObjects()
+    {
+        PreloadedChannels.Clear();
+        PreloadedMessages.Clear();
+        PreloadedServers.Clear();
+        PreloadedUsers.Clear();
+    }
+    
     public static void CreateIndexes()
     {
         var userIndex = new List<CreateIndexModel<UserEntry>>{new (Builders<UserEntry>.IndexKeys.Ascending(x => x.Id)) };
@@ -70,6 +82,8 @@ public static class Database
     {
         if (ChannelCache.Get(channelId, out var value))
             return value!;
+        if (PreloadedChannels.TryGetValue(channelId, out var preloadedChannel))
+            return preloadedChannel;
         
         var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channelId);
         var data = ChannelCollection.Find(expression).FirstOrDefault();
@@ -78,6 +92,8 @@ public static class Database
             return null;
 
         var channel = new Channel(new LiteFlakeId(data.Id));
+        PreloadedChannels[channelId] = channel;
+        
         channel.Server = parsedServer ?? FindServer(data.Server);
         channel.Name = data.Name;
         var messagesToLoad = data.Messages.Skip(Math.Max(0,  data.Messages.Count - 255));
@@ -119,6 +135,8 @@ public static class Database
     {
         if (MessageCache.Get(messageId, out var value))
             return value!;
+        if (PreloadedMessages.TryGetValue(messageId, out var preloadedMessage))
+            return preloadedMessage;
         
         var expression = Builders<MessageEntry>.Filter.Eq(x => x.Id, messageId);
         var data = MessageCollection.Find(expression).FirstOrDefault();
@@ -133,6 +151,8 @@ public static class Database
             return null;
 
         var message = new Message(new LiteFlakeId(data.Id));
+        PreloadedMessages[messageId] = message;
+        
         message.Channel = channel;
         message.Author = author;
         message.Content = data.Content;
@@ -145,7 +165,7 @@ public static class Database
     {
         return FindServer(serverId.Val);
     }
-    public static Server? FindServer(long serverId)
+    public static Server? FindServer(long serverId, User? parsedUser=null)
     {
         // DMs
         if (serverId == 0)
@@ -153,6 +173,8 @@ public static class Database
         
         if (ServerCache.Get(serverId, out var value))
             return value!;
+        if (PreloadedServers.TryGetValue(serverId, out var preloadedServer))
+            return preloadedServer;
         
         var expression = Builders<ServerEntry>.Filter.Eq(x => x.Id, serverId);
         var data = ServerCollection.Find(expression).FirstOrDefault();
@@ -160,18 +182,34 @@ public static class Database
         if (data == null)
             return null;
         
-        var owner = FindUser(data.Owner);
-
+        User? owner;
+        if (parsedUser != null && data.Owner != parsedUser.Id)
+            owner = FindUser(data.Owner);
+        else
+            owner = parsedUser;
+        
         if (owner == null)
             return null;
         
         var server = new Server(new LiteFlakeId(data.Id));
+        PreloadedServers[serverId] = server;
+        
         server.Name = data.Name;
         server.Owner = owner;
         server.Channels = data.Channels.Select(x => FindChannel(x, server)).Where(x => x != null).ToList()!;
-        var admins = data.Admins.Select(x => new Tuple<User?, byte>(FindUser(x.Item1), x.Item2));
-        server.Admins = admins.Where(x => x.Item1 is not null).ToList()!;
-        server.Users =  data.Users.Select(FindUser).Where(x => x != null).ToList()!;
+
+        if (parsedUser != null)
+        {
+            var admins = data.Admins.Select(x => x.Item1 != parsedUser.Id ? new Tuple<User?, byte>(FindUser(x.Item1), x.Item2) : new Tuple<User?, byte>(parsedUser, x.Item2) );
+            server.Admins = admins.Where(x => x.Item1 is not null).ToList()!;
+            server.Users =  data.Users.Select(x => x != parsedUser.Id ? FindUser(x) : parsedUser).Where(x => x != null).ToList()!;
+        }
+        else
+        {
+            var admins = data.Admins.Select(x => new Tuple<User?, byte>(FindUser(x.Item1), x.Item2));
+            server.Admins = admins.Where(x => x.Item1 is not null).ToList()!;
+            server.Users =  data.Users.Select(FindUser).Where(x => x != null).ToList()!;
+        }
 
         ServerCache.Add(server);
         return server;
@@ -197,6 +235,8 @@ public static class Database
     {
         if (UserCache.Get(userId, out var value))
             return value!;
+        if (PreloadedUsers.TryGetValue(userId, out var preloadedUser))
+            return preloadedUser;
         
         var expression = Builders<UserEntry>.Filter.Eq(x => x.Id, userId);
         var data = UserCollection.Find(expression).FirstOrDefault();
@@ -205,6 +245,8 @@ public static class Database
             return null;
         
         var user = new User(new LiteFlakeId(data.Id));
+        PreloadedUsers[userId] = user;
+        
         user.Name = data.Name;
         user.Discriminator = data.Discriminator;
         user.Email = data.Email;
@@ -215,9 +257,9 @@ public static class Database
         user.Banner = data.Banner;
         user.Flags = data.Flags;
         user.Nicknames = data.Nicknames
-            .Where(pair => FindServer(pair.Key) != null)
-            .ToDictionary(pair => FindServer(pair.Key), pair => pair.Value)!;
-        user.Servers = data.Servers.Select(FindServer).Where(x => x != null).ToList()!;
+            .Where(pair => FindServer(pair.Key, user) != null)
+            .ToDictionary(pair => FindServer(pair.Key, user), pair => pair.Value)!;
+        user.Servers = data.Servers.Select(x => FindServer(x, user)).Where(x => x != null).ToList()!;
         user.Friends = data.Friends.Select(FindUser).Where(x => x != null).ToList()!;
         user.FriendRequests = data.FriendRequests.Select(FindUser).Where(x => x != null).ToList()!;
         user.DirectMessages = data.DirectMessages.Select(x => FindChannel(x, null)).Where(x => x != null).ToList()!;

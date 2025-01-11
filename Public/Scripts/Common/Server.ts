@@ -2,10 +2,10 @@ import {ServerUser, User} from "./User";
 import {Channel} from "./Channel";
 
 export class Server {
-    get id(): string {
+    get id(): number {
         return this._id;
     }
-    protected _id: string;
+    protected _id: number;
     
     public name: string;
     public owner: ServerUser;
@@ -14,7 +14,7 @@ export class Server {
     public users: ServerUser[];
     
     constructor(
-        id: string,
+        id: number,
         name: string,
         owner: ServerUser,
         channels: Channel[],

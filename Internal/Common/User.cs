@@ -9,8 +9,8 @@ public class User(LiteFlakeId? id) : ICachableType
     public LiteFlakeId Id { get; set; } = id ?? new LiteFlakeId();
     public string Name { get; set; }
     public ushort Discriminator { get; set; }
-    public string Email { get; set; }
     
+    [JsonIgnore] public string Email { get; set; }
     [JsonIgnore] public byte[] PasswordHash { get; set; } = [];
     [JsonIgnore] public byte[] PasswordSalt { get; set; } = [];
     [JsonIgnore] public AuthToken AuthToken { get; set; }

@@ -20,7 +20,13 @@ const inputText = "This is **bold** text. " +
     "This is __***bold, italic and underlined***__ text. " +
     "This is ~~***bold, italic and strikethrough***~~ text. " +
     "This is __~~***all of it***~~__ text. " +
+    "This is a ||hidden|| text. " +
     "Here should be a\n break." +
+    "\n" +
+    "- This is a list\n" +
+    "- This is still in the list :3\n" +
+    "\n" +
+    "> This is a blockquote" +
     "\n" +
     "Oh hey look at this [Example Link](https://www.example.com)!" +
     "\n" +

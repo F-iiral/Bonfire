@@ -51,6 +51,11 @@ code {
     width: 80vw;
 }
 
+li {
+    margin-left: 16px;
+    list-style-type: disc;
+}
+
 .container {
     display: flex;
     height: 100vh;
@@ -63,6 +68,22 @@ code {
     padding-left: 16px;
     width: 300px;
     height: 100%;
+}
+
+.spoiler {
+    color: var(--grey-darker);
+    background-color: var(--grey-darker);
+}
+.spoiler:hover{
+    color: inherit;
+    background-color: var(--grey-dark);
+}
+
+.blockquote {
+    margin-left: 4px;
+    padding-left: 8px;
+    background-color: var(--grey-light);
+    border-left: 4px solid var(--blue-dark);
 }
 
 .hljs-comment, .hljs-doctag {

@@ -1,8 +1,8 @@
 export class User {
-    get id(): string {
+    get id(): number {
         return this._id;
     }
-    protected _id: string;
+    protected _id: number;
     
     public name: string;
     public discriminator: number;
@@ -10,7 +10,7 @@ export class User {
     public banner?: string | null;
     public flags: number;
     
-    constructor(id: string, 
+    constructor(id: number, 
                 name: string, 
                 discriminator: number, 
                 flags: number, 
@@ -30,7 +30,7 @@ export class ServerUser extends User {
     public nickname: string | null;
     public permissionLevel: number;
 
-    constructor(id: string,
+    constructor(id: number,
                 name: string,
                 discriminator: number,
                 flags: number,
