@@ -6,9 +6,7 @@ function Connect<TBody, TResponse>(url: string, body: TBody, method: string): Pr
         body: method != "GET" ? JSON.stringify(body) : null,
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `${getCookie('token') ?? ''}`,
-            "Upgrade": "websocket",
-            "Connection": "Upgrade"
+            "Authorization": `${getCookie('token') ?? ''}`
         }})
         .then(response => {
             if (!response.ok)

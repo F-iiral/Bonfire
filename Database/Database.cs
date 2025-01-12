@@ -5,7 +5,6 @@ using BonfireServer.Internal.Common;
 using MongoDB.Driver;
 
 namespace BonfireServer.Database;
-#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 
 public static class Database
 {
@@ -51,22 +50,16 @@ public static class Database
         }
     }
 
-    private static void ClearPreloadedObjects()
-    {
-        PreloadedChannels.Clear();
-        PreloadedMessages.Clear();
-        PreloadedServers.Clear();
-        PreloadedUsers.Clear();
-    }
-    
     public static void CreateIndexes()
     {
-        var userIndex = new List<CreateIndexModel<UserEntry>>{new (Builders<UserEntry>.IndexKeys.Ascending(x => x.Id)) };
+        var userIdIndex = new List<CreateIndexModel<UserEntry>>{new (Builders<UserEntry>.IndexKeys.Ascending(x => x.Id)) };
+        var userNameIndex = new List<CreateIndexModel<UserEntry>>{new (Builders<UserEntry>.IndexKeys.Ascending(x => x.Name)) };
         var channelIndex = new List<CreateIndexModel<ChannelEntry>>{new (Builders<ChannelEntry>.IndexKeys.Ascending(x => x.Id)) };
         var serverIndex = new List<CreateIndexModel<ServerEntry>>{new (Builders<ServerEntry>.IndexKeys.Ascending(x => x.Id)) };
         var messageIndex = new List<CreateIndexModel<MessageEntry>>{new (Builders<MessageEntry>.IndexKeys.Ascending(x => x.Id)) };
-        
-        UserCollection.Indexes.CreateMany(userIndex);
+      
+        UserCollection.Indexes.CreateMany(userIdIndex);
+        UserCollection.Indexes.CreateMany(userNameIndex);
         ChannelCollection.Indexes.CreateMany(channelIndex);
         ServerCollection.Indexes.CreateMany(serverIndex);
         MessageCollection.Indexes.CreateMany(messageIndex);
@@ -103,7 +96,7 @@ public static class Database
         return channel;
     }
 
-    public static Channel TryExtendChannelMessages(Channel channel, out bool success, long beforeId = 0)
+    public static void TryExtendChannelMessages(Channel channel, out bool success, long beforeId = 0)
     {
         var expression = Builders<ChannelEntry>.Filter.Eq(x => x.Id, channel.Id.Val);
         var data = ChannelCollection.Find(expression).FirstOrDefault();
@@ -119,16 +112,12 @@ public static class Database
             : data.Messages.Skip(currentLoadedCount).Take(messagesToLoadCount).ToList();
 
         if (messagesToLoad.Count == 0)
-        {
             success = false;
-            return channel;
-        }
 
         var newMessages = messagesToLoad.Select(x => FindMessage(x, channel)).Where(x => x != null).ToList();
         channel.Messages.AddRange(newMessages!);
         channel.Messages = channel.Messages.OrderByDescending(x => x.Id).ToList();
         success = true;
-        return channel;
     }
     
     public static Message? FindMessage(LiteFlakeId messageId)

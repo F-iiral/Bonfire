@@ -1,5 +1,6 @@
 using BonfireServer.Internal;
 using BonfireServer.Internal.Common;
+using BonfireServer.Internal.Const;
 
 namespace BonfireServer.Database.DatabaseTypes;
 
@@ -17,6 +18,8 @@ public class UserEntry
     
     public string? Avatar { get; set; } = null;
     public string? Banner { get; set; } = null;
+    public string? Bio { get; set; } = null;
+    public int Status { get; set; } = UserStatusCodes.Offline;
     public int Flags { get; set; } = 0;
     
     public Dictionary<long, string> Nicknames { get; set; }
@@ -36,6 +39,8 @@ public class UserEntry
         AuthToken = user.AuthToken.Val;
         Avatar = user.Avatar;
         Banner = user.Banner;
+        Bio = user.Bio;
+        Status = user.Status;
         Flags = user.Flags;
         Nicknames = user.Nicknames.ToDictionary(x => x.Key.Id.Val, x => x.Value);
         Servers = user.Servers.Select(x => x.Id.Val).ToList();

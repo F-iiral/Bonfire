@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using BonfireServer.Database;
+using BonfireServer.Internal.Const;
 
 namespace BonfireServer.Internal.Common;
 
@@ -17,6 +18,8 @@ public class User(LiteFlakeId? id) : ICachableType
 
     public string? Avatar { get; set; } = null;
     public string? Banner { get; set; } = null;
+    public string? Bio { get; set; } = null;
+    public int Status { get; set; } = UserStatusCodes.Offline;
     public int Flags { get; set; } = 0;
 
     [JsonIgnore] public Dictionary<Server, string> Nicknames { get; set; } = new();

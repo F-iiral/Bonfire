@@ -8,20 +8,26 @@ export class User {
     public discriminator: number;
     public avatar?: string | null;
     public banner?: string | null;
+    public bio?: string | null;
+    public status: number;
     public flags: number;
     
     constructor(id: number, 
                 name: string, 
                 discriminator: number, 
-                flags: number, 
+                flags: number,
+                status: number,
                 avatar?: string | null,
-                banner?: string | null
+                banner?: string | null,
+                bio?: string | null,
     ) {
         this._id = id;
         this.name = name;
         this.discriminator = discriminator;
         this.avatar = avatar;
         this.banner = banner;
+        this.bio = bio;
+        this.status = status;
         this.flags = flags;
     }
 }
@@ -36,10 +42,12 @@ export class ServerUser extends User {
                 flags: number,
                 nickname: string | null,
                 permissionLevel: number,
+                status: number,
                 avatar?: string | null,
-                banner?: string | null
+                banner?: string | null,
+                bio?: string | null,
     ) {
-        super(id, name, discriminator, flags, avatar, banner);
+        super(id, name, discriminator, flags, status, avatar, banner, bio);
         
         this.nickname = nickname;
         this.permissionLevel = permissionLevel;
