@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -185,6 +186,11 @@ internal abstract class HttpServer
                 // Will wait here until we hear from a connection
                 var req = ctx.Request;
                 var res = ctx.Response;
+                
+                if (ctx.Request.IsWebSocketRequest)
+                {
+                    ProcessRequest(ctx);
+                }
 
                 Logger.Info($"[{req.HttpMethod}] {req.Url?.ToString()} - {req.UserAgent}");
                 
@@ -240,5 +246,56 @@ internal abstract class HttpServer
         listenTask.GetAwaiter().GetResult();
 
         Listener.Close();
+    }
+    
+    private static int count = 0;
+    private static async void ProcessRequest(HttpListenerContext listenerContext)
+    {
+        WebSocketContext webSocketContext;
+        try
+        { 
+            webSocketContext = await listenerContext.AcceptWebSocketAsync(subProtocol: null);
+            Interlocked.Increment(ref count);
+            Logger.Info($"Processed: {count}");
+        }
+        catch(Exception ex)
+        { 
+            listenerContext.Response.StatusCode = 500;
+            listenerContext.Response.Close();
+            Logger.Info($"Exception: {ex}");
+            return;
+        }
+                                
+        var webSocket = webSocketContext.WebSocket;                                           
+        try
+        {
+            var receiveBuffer = new byte[1024];
+
+            while (webSocket.State == WebSocketState.Open)
+            {
+                var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
+
+                switch (receiveResult.MessageType)
+                {
+                    case WebSocketMessageType.Close:
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                        break;
+                    case WebSocketMessageType.Text:
+                        Logger.Warn("Received text frame, rejecting.");
+                        break;
+                    default:
+                        await webSocket.SendAsync(new ArraySegment<byte>(receiveBuffer, 0, receiveResult.Count), WebSocketMessageType.Binary, true, CancellationToken.None);
+                        break;
+                }
+            }
+        }
+        catch(Exception ex)
+        { 
+            Logger.Warn($"Exception: {ex}");
+        }
+        finally
+        { 
+            webSocket.Dispose();
+        }
     }
 }

@@ -2,6 +2,8 @@ namespace BonfireServer.Internal.Const;
 
 public static class StatusCodes
 {
+    public const int ChangingProtocols = 101;
+    
     public const int Ok = 200;
     public const int Created = 201;
     public const int Accepted = 202;

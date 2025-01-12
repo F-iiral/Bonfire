@@ -66,8 +66,13 @@ li {
     margin-right: 16px;
     padding-right: 16px;
     padding-left: 16px;
-    width: 300px;
+    min-width: 300px;
     height: 100%;
+    position: fixed;
+}
+
+.content {
+    margin-left: 348px;
 }
 
 .spoiler {

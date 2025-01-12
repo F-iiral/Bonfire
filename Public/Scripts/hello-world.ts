@@ -83,3 +83,27 @@ if (messages1 != null && messages2 != null) {
         }
     }
 }
+const websocket = new WebSocket("/websocket");
+
+websocket.addEventListener("open", async () => {
+    console.log("WebSocket connection established");
+    
+    let i = 0;
+    let str = `:3 ${i}`;
+    let buf = new ArrayBuffer(str.length); // 2 bytes for each char
+    let bufView = new Uint8Array(buf);
+        
+    for (let j = 0, strLen = str.length; j < strLen; j++) {
+        bufView[j] = str.charCodeAt(j);
+    }
+    websocket.send(buf);
+});
+websocket.addEventListener("message", (event) => {
+    console.log(event.data);
+});
+websocket.addEventListener("error", (error) => {
+    console.error("WebSocket error:", error);
+});
+websocket.addEventListener("close", (event) => {
+    console.log(`WebSocket closed: code=${event.code}, reason=${event.reason}`);
+});
