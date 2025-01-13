@@ -44,9 +44,9 @@ public static class Database
             
             Logger.Info("Successfully connected to MongoDB.");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            throw new Exception($"Failed to initialize database (Possibly not connected?): {e.Message}");
+            throw new Exception($"Failed to initialize database (Possibly not connected?): {ex}");
         }
     }
 

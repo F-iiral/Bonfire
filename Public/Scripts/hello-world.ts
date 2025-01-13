@@ -89,5 +89,5 @@ if (messages1 != null && messages2 != null) {
 connectWebsocket();
 for (let i=0; i<20; i++) {
     sendWebsocketMessage(i.toString())
-    await sleep(1000);
+    await sleep(10000);
 }

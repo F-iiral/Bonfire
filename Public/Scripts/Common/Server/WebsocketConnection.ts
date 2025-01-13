@@ -15,7 +15,7 @@ websocket.addEventListener("open", async () => {
     console.log("WebSocket connection established");
 });
 websocket.addEventListener("message", (event) => {
-    
+    console.log(event.data)
 });
 websocket.addEventListener("error", (error) => {
     console.error("WebSocket error:", error);

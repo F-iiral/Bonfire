@@ -8,6 +8,7 @@ using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Context.Channel;
 using BonfireServer.Internal.Context.User;
+using BonfireServer.Internal.Event;
 using BonfireServer.Internal.Paths.Channel;
 using BonfireServer.Internal.Paths.User;
 
@@ -21,15 +22,11 @@ internal abstract class Program
         HttpServer.Listener.Start();
         Logger.Info($"Listening for connections on {HttpServer.BaseUrl}");
         
-        // Generate a token so that we know a SECRET is set
-        var _ = new AuthToken(new LiteFlakeId());
-        Logger.Info(_.Val);
-        
-        // Start the Database so that the static constructor is called
         Database.Database.CreateIndexes();
-
         HttpServer.LoadFrontendFiles();
 
+        var testToken = new AuthToken(new LiteFlakeId());
+        var pingTask = Task.Run(WebsocketServer.LoopAsync); 
         var listenTask = HttpServer.HandleIncomingConnections();
         listenTask.GetAwaiter().GetResult();
 
@@ -247,13 +244,66 @@ internal static class HttpServer
             Files[filename] = new (File.ReadAllBytes(filePath), File.GetLastWriteTime(filePath).Ticks);
         }
     }
-    
 }
 
 internal static class WebsocketServer
 {
     private static int Count;
+    private const int TimeoutMilliseconds = 10000;
+    private static readonly ArraySegment<byte> PingData = new(Encoding.UTF8.GetBytes("ACK"), 0, "ACK".Length);
+    public static readonly Dictionary<LiteFlakeId, WebSocket> Targets = new();
+
+    public static void CleanSocket(LiteFlakeId id, WebSocket socket, string reason)
+    {
+        socket.CloseAsync(WebSocketCloseStatus.NormalClosure, reason, CancellationToken.None);
+        
+        BaseEvent.RemoveTargetFromAll(id);
+        Targets.Remove(id);
+        socket.Dispose();
+    }
     
+    public static void SendData(LiteFlakeId id, WebSocket socket, ArraySegment<byte> data)
+    {
+        try
+        {
+            if (socket.State != WebSocketState.Open)
+                CleanSocket(id, socket, "Client Closed");
+
+            socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Exception while sending data over websocket: {ex}");
+            CleanSocket(id, socket, "Exception occured");
+        }
+    }
+    
+    private static Task CheckUser(LiteFlakeId id, WebSocket socket)
+    {
+        SendData(id, socket, PingData);
+        
+        var buffer = new byte[16384];
+        var receiveTask = Task.Run(() => socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None));
+        var idleTask = Task.Delay(TimeoutMilliseconds);
+        
+        var result = Task.WhenAny(receiveTask, idleTask);
+        result.Wait();
+        
+        if (result.Result == idleTask)
+            CleanSocket(id, socket, "Timeout");
+        
+        return Task.CompletedTask;
+    }
+
+    public static async Task LoopAsync()
+    {
+        while (true)
+        {
+            await Task.WhenAll(Targets.Select(target => CheckUser(target.Key, target.Value)));
+            await Task.Delay(TimeoutMilliseconds);
+        }
+    }
+
     public static async void ProcessRequest(HttpListenerContext listenerContext)
     {
         WebSocketContext webSocketContext;
@@ -261,47 +311,19 @@ internal static class WebsocketServer
         { 
             webSocketContext = await listenerContext.AcceptWebSocketAsync(subProtocol: null);
             Interlocked.Increment(ref Count);
-            Logger.Info($"Processed: {Count}");
         }
-        catch(Exception ex)
-        { 
-            listenerContext.Response.StatusCode = 500;
+        catch (Exception ex)
+        {
+            Logger.Warn($"Exception while accepting websocket: {ex}");
+            listenerContext.Response.StatusCode = StatusCodes.InternalServerError;
             listenerContext.Response.Close();
-            Logger.Info($"Exception: {ex}");
             return;
         }
         
-        var webSocket = webSocketContext.WebSocket;                                           
-        try
-        {
-            while (webSocket.State == WebSocketState.Open)
-            {
-                var receiveBuffer = new byte[16384];
-                var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
+        var webSocket = webSocketContext.WebSocket;
 
-                switch (receiveResult.MessageType)
-                {
-                    case WebSocketMessageType.Close:
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
-                        break;
-                    case WebSocketMessageType.Text:
-                        var receivedText = Encoding.UTF8.GetString(receiveBuffer, 0, receiveBuffer.Length);
-                        Logger.Info($"Received: {receivedText}");
-                        await webSocket.SendAsync(new ArraySegment<byte>(receiveBuffer, 0, receiveResult.Count), WebSocketMessageType.Text, true, CancellationToken.None);
-                        break;
-                    default:
-                        await webSocket.SendAsync(new ArraySegment<byte>(receiveBuffer, 0, receiveResult.Count), WebSocketMessageType.Binary, true, CancellationToken.None);
-                        break;
-                }
-            }
-        }
-        catch(Exception ex)
-        { 
-            Logger.Warn($"Exception: {ex}");
-        }
-        finally
-        { 
-            webSocket.Dispose();
-        }
+        // ToDo: Request the ID from the client
+        var id = new LiteFlakeId(Count);
+        Targets[id] = webSocket;
     }
 }
