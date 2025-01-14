@@ -1,6 +1,7 @@
-namespace BonfireServer.Internal;
 using System.Net;
 using System.Text;
+
+namespace BonfireServer.Internal;
 
 public class ReqResMessage(HttpListenerRequest request, HttpListenerResponse response)
 {

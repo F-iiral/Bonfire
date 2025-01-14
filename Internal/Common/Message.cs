@@ -1,6 +1,5 @@
 using System.Web;
 using BonfireServer.Database;
-using BonfireServer.Internal.Context.Channel;
 
 namespace BonfireServer.Internal.Common;
 

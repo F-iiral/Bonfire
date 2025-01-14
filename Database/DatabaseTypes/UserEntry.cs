@@ -1,4 +1,3 @@
-using BonfireServer.Internal;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 

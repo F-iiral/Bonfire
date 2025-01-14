@@ -1,4 +1,4 @@
-namespace BonfireServer.Internal.Context.User;
+namespace BonfireServer.Internal.Context.Account;
 
 public class GetSelfUserContext : IBaseContext
 {

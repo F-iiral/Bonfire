@@ -1,5 +1,4 @@
 using System.Text;
-using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
 

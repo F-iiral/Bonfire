@@ -248,6 +248,8 @@ public static class Database
         user.AuthToken = new AuthToken(data.AuthToken);
         user.Avatar = data.Avatar;
         user.Banner = data.Banner;
+        user.Bio = data.Bio;
+        user.Status = data.Status;
         user.Flags = data.Flags;
         user.Nicknames = data.Nicknames
             .Where(pair => FindServer(pair.Key, user) != null)

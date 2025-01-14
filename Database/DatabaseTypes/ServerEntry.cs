@@ -1,4 +1,3 @@
-using BonfireServer.Internal;
 using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Database.DatabaseTypes;

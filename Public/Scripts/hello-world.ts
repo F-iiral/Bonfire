@@ -1,7 +1,7 @@
 import {parseFormattedText} from "./Common/Helpers/Markdown.js";
 import {Get, Query} from "./Common/Server/HttpConnections.js";
-import {SelfUserContent} from "./Content/Account/SelfUser";
-import {GetMessagesContext} from "./Context/Channel/GetMessages.js";
+import {SelfUserContent} from "./Content/Account/SelfUserContent.js";
+import {GetMessagesContext} from "./Context/Channel/GetMessagesContext.js";
 import {connectWebsocket, sendWebsocketMessage} from "./Common/Server/WebsocketConnection.js";
 import {sleep} from "./Common/Helpers/Sleep.js";
 import ReactDOM from "react-dom";

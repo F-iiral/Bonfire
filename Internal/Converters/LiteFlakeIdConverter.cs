@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 namespace BonfireServer.Internal.Converters;
 
 public class LiteFlakeIdJsonConverter : JsonConverter<LiteFlakeId>

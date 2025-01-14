@@ -2,7 +2,7 @@ using BonfireServer.Internal.Common;
 
 namespace BonfireServer.Internal.Content.Server;
 
-public class ServerInfo(Common.Server server) : IBaseContent
+public class ServerInfoContent(Common.Server server) : IBaseContent
 {    public LiteFlakeId Id { get; set; } = server.Id;
 
     public string Name { get; set; } = server.Name;

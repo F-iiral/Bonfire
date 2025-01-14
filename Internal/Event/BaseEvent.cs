@@ -1,7 +1,5 @@
-using System.Net.Mime;
 using System.Net.WebSockets;
-using System.Text;
-using System.Reflection;
+using BonfireServer.Internal.Paths;
 
 namespace BonfireServer.Internal.Event;
 
@@ -41,5 +39,5 @@ public abstract class BaseEvent
     }
     
     protected abstract Dictionary<LiteFlakeId, WebSocket> Targets { get; }
-    public abstract void Emit();
+    public abstract void Emit<T>() where T : BasePath;
 }
