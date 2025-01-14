@@ -9,6 +9,7 @@ using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Context.Account;
 using BonfireServer.Internal.Context.Channel;
 using BonfireServer.Internal.Event;
+using BonfireServer.Internal.Event.Channel;
 using BonfireServer.Internal.Paths.Channel;
 using BonfireServer.Internal.Paths.User;
 
@@ -325,5 +326,6 @@ internal static class WebsocketServer
         // ToDo: Request the ID from the client
         var id = new LiteFlakeId(Count);
         Targets[id] = webSocket;
+        BaseEvent.AddTarget(typeof(DeleteMessageEvent), id, webSocket);
     }
 }

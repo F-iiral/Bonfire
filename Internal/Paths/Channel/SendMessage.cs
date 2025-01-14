@@ -2,6 +2,7 @@ using System.Text;
 using BonfireServer.Internal.Common;
 using BonfireServer.Internal.Const;
 using BonfireServer.Internal.Context.Channel;
+using BonfireServer.Internal.Event.Channel;
 
 namespace BonfireServer.Internal.Paths.Channel;
 
@@ -24,6 +25,7 @@ public class SendMessagePath : BasePath
             return UnprocessableMessage(msg);
 
         Message.Create(content, channel, author);
+        new SendMessageEvent().Emit(ctx);
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

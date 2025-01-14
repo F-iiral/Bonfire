@@ -303,27 +303,27 @@ public static class Database
     {
         ChannelCache.Remove(channel.Id, out var _);
         
-        UserCollection.DeleteOne(x => x.Id == channel.Id);
+        ChannelCollection.DeleteOne(x => x.Id == channel.Id.Val);
     }
     
     public static void DeleteMessage(Message message)
     {
         MessageCache.Remove(message.Id, out var _);
         
-        UserCollection.DeleteOne(x => x.Id == message.Id);
+        MessageCollection.DeleteOne(x => x.Id == message.Id.Val);
     }
     
     public static void DeleteServer(Server server)
     {
         ServerCache.Remove(server.Id, out var _);
         
-        UserCollection.DeleteOne(x => x.Id == server.Id);
+        ServerCollection.DeleteOne(x => x.Id == server.Id.Val);
     }
     
     public static void DeleteUser(User user)
     {
         UserCache.Remove(user.Id, out var _);
         
-        UserCollection.DeleteOne(x => x.Id == user.Id);
+        UserCollection.DeleteOne(x => x.Id == user.Id.Val);
     }
 }

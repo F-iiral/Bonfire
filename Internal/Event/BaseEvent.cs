@@ -1,4 +1,7 @@
 using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
+using BonfireServer.Internal.Context;
 using BonfireServer.Internal.Paths;
 
 namespace BonfireServer.Internal.Event;
@@ -39,5 +42,21 @@ public abstract class BaseEvent
     }
     
     protected abstract Dictionary<LiteFlakeId, WebSocket> Targets { get; }
-    public abstract void Emit<T>() where T : BasePath;
+
+    public virtual void Emit<T>(T ctx) where T : IBaseContext
+    {
+        var evt = new
+        {
+            EventType = typeof(T).Name,
+            Payload = ctx
+        };
+    
+        var json = JsonSerializer.Serialize(evt);
+        var data = Encoding.UTF8.GetBytes(json);
+    
+        foreach (var target in Targets)
+        {
+            WebsocketServer.SendData(target.Key, target.Value, data);
+        }
+    }
 }
