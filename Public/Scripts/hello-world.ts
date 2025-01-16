@@ -2,12 +2,17 @@ import {parseFormattedText} from "./Common/Helpers/Markdown.js";
 import {Get, Query} from "./Common/Server/HttpConnections.js";
 import {SelfUserContent} from "./Content/Account/SelfUserContent.js";
 import {GetMessagesContext} from "./Context/Channel/GetMessagesContext.js";
-import {connectWebsocket, sendWebsocketMessage} from "./Common/Server/WebsocketConnection.js";
+import {addWebsocketListener, connectWebsocket, sendWebsocketMessage} from "./Common/Server/WebsocketConnection.js";
 import {sleep} from "./Common/Helpers/Sleep.js";
+import {DeleteMessageContext} from "./Context/Channel/DeleteMessageContext.js";
+import {InternalState} from "./Common/Internal State/InternalState.js";
 import ReactDOM from "react-dom";
 
 const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
-console.log(accountData)
+if (accountData) {
+    const grr = new InternalState(accountData);
+    console.log(grr);
+}
 
 const messages1 = await Query<[], GetMessagesContext>("api/v1/channel/get_messages", new GetMessagesContext(4198290620417, 255, true))
 const messages2 = await Query<[], GetMessagesContext>("api/v1/channel/get_messages", new GetMessagesContext(4198290620417, 255, true, 4198290621363))
@@ -87,6 +92,10 @@ if (messages1 != null && messages2 != null) {
 }
 
 connectWebsocket();
+addWebsocketListener("DeleteMessageContext", (ctx: DeleteMessageContext) => {
+    console.log(ctx);
+})
+
 for (let i=0; i<20; i++) {
     sendWebsocketMessage(i.toString())
     await sleep(10000);

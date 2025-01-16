@@ -1,16 +1,13 @@
 export class User {
-    get id(): number {
-        return this._id;
-    }
-    protected _id: number;
+    public Id: number;
     
-    public name: string;
-    public discriminator: number;
-    public avatar?: string | null;
-    public banner?: string | null;
-    public bio?: string | null;
-    public status: number;
-    public flags: number;
+    public Name: string;
+    public Discriminator: number;
+    public Avatar?: string | null;
+    public Banner?: string | null;
+    public Bio?: string | null;
+    public Status: number;
+    public Flags: number;
     
     constructor(id: number, 
                 name: string, 
@@ -21,20 +18,20 @@ export class User {
                 banner?: string | null,
                 bio?: string | null,
     ) {
-        this._id = id;
-        this.name = name;
-        this.discriminator = discriminator;
-        this.avatar = avatar;
-        this.banner = banner;
-        this.bio = bio;
-        this.status = status;
-        this.flags = flags;
+        this.Id = id;
+        this.Name = name;
+        this.Discriminator = discriminator;
+        this.Avatar = avatar;
+        this.Banner = banner;
+        this.Bio = bio;
+        this.Status = status;
+        this.Flags = flags;
     }
 }
 
 export class ServerUser extends User {
-    public nickname: string | null;
-    public permissionLevel: number;
+    public Nickname: string | null;
+    public PermissionLevel: number;
 
     constructor(id: number,
                 name: string,
@@ -49,7 +46,7 @@ export class ServerUser extends User {
     ) {
         super(id, name, discriminator, flags, status, avatar, banner, bio);
         
-        this.nickname = nickname;
-        this.permissionLevel = permissionLevel;
+        this.Nickname = nickname;
+        this.PermissionLevel = permissionLevel;
     }
 }

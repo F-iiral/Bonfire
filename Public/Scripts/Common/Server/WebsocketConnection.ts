@@ -1,4 +1,24 @@
+import {getCookie} from "../Helpers/Cookies.js";
+
 const websocket: WebSocket = new WebSocket("/websocket");
+const responseListeners: Map<string, Function[]> = new Map([
+    ["DeleteMessageContext", []],
+    ["GetMessagesContext", []],
+    ["SendMessageContext", []],
+]);
+
+class Event {
+    EventType: string;
+    Payload: any;
+
+    constructor(
+        eventType: string,
+        payload: any,
+    ) {
+        this.EventType = eventType;
+        this.Payload = payload;
+    }
+}
 
 export function connectWebsocket(): void {}
 export function closeWebsocket(code: number): void {
@@ -10,12 +30,32 @@ export function sendWebsocketMessage(message: string): void {
         websocket.send(message);
     }
 }
+export function addWebsocketListener(eventType: string, func: Function) {
+    if (responseListeners.has(eventType)) {
+        responseListeners.get(eventType)!.push(func);
+    }
+    else {
+        console.error(`Tried to register unknown event type ${eventType}. Are you up to date?`);
+    }
+}
 
 websocket.addEventListener("open", async () => {
-    console.log("WebSocket connection established");
+    console.log("WebSocket connection established.");
+    sendWebsocketMessage(getCookie("token") ?? "")
 });
 websocket.addEventListener("message", (event) => {
-    console.log(event.data)
+    if (event.data == "ACK") 
+        return;
+    
+    const parsedEvent = JSON.parse(event.data) as Event;
+    if (responseListeners.has(parsedEvent.EventType)) {
+        for (const listener of responseListeners.get(parsedEvent.EventType)!) {
+            listener(parsedEvent.Payload);
+        }
+    }
+    else {
+        console.warn(`Received unknown event type ${event.type}. Are you up to date?`);
+    }
 });
 websocket.addEventListener("error", (error) => {
     console.error("WebSocket error:", error);

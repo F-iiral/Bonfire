@@ -279,6 +279,64 @@ internal static class WebsocketServer
         }
     }
     
+    private static Task RegisterNewSocket(WebSocket socket)
+    {
+        var buffer = new byte[16384];
+        var receiveTask = Task.Run(() => socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None));
+        var idleTask = Task.Delay(TimeoutMilliseconds);
+        
+        var result = Task.WhenAny(receiveTask, idleTask);
+        result.Wait();
+        
+        if (result.Result == idleTask)
+        {
+            socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Timeout", CancellationToken.None);
+            socket.Dispose();
+            return Task.CompletedTask;
+        }
+
+        try
+        {
+            var rawToken = Encoding.UTF8.GetString(buffer.Take(buffer.Length - 1).ToArray());
+            if (rawToken == null || rawToken == "")
+            {
+                socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Invalid Token", CancellationToken.None);
+                socket.Dispose();
+                return Task.CompletedTask;
+            }
+
+            var splitToken = rawToken.Split('.');
+            if (splitToken.Length != 4)
+            {
+                socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Invalid Token", CancellationToken.None);
+                socket.Dispose();
+                return Task.CompletedTask;
+            }
+
+            var success = long.TryParse(Encoding.UTF8.GetString(Convert.FromBase64String(splitToken[0])),
+                out var userIdLong);
+            if (!success)
+            {
+                socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Invalid Token", CancellationToken.None);
+                socket.Dispose();
+                return Task.CompletedTask;
+            }
+
+            var userId = new LiteFlakeId(userIdLong);
+            Targets[userId] = socket;
+            Logger.Info($"User {userId} connected");
+
+            // Temp
+            BaseEvent.AddTarget(typeof(DeleteMessageEvent), userId, socket);
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Exception while receiving token over websocket: {ex}");
+        }
+        
+        return Task.CompletedTask;
+    }
+    
     private static Task CheckUser(LiteFlakeId id, WebSocket socket)
     {
         SendData(id, socket, PingData);
@@ -322,10 +380,6 @@ internal static class WebsocketServer
         }
         
         var webSocket = webSocketContext.WebSocket;
-
-        // ToDo: Request the ID from the client
-        var id = new LiteFlakeId(Count);
-        Targets[id] = webSocket;
-        BaseEvent.AddTarget(typeof(DeleteMessageEvent), id, webSocket);
+        await Task.Run(() => RegisterNewSocket(webSocket));
     }
 }

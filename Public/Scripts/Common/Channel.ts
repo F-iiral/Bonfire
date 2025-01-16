@@ -2,14 +2,11 @@ import {Message} from "./Message";
 import {Server} from "./Server";
 
 export class Channel {
-    get id(): number {
-        return this._id;
-    }
-    protected _id: number;
+    public Id: number;
     
-    public name: string;
-    public server: Server | null;
-    public messages: (Message | null)[];
+    public Name: string;
+    public Server: Server | null;
+    public Messages: (Message | null)[];
     
     constructor(
         id: number,
@@ -17,9 +14,9 @@ export class Channel {
         server: Server | null, 
         messages: (Message | null)[]
     ) {
-        this._id = id;
-        this.name = name;
-        this.server = server;
-        this.messages = messages;
+        this.Id = id;
+        this.Name = name;
+        this.Server = server;
+        this.Messages = messages;
     }
 }

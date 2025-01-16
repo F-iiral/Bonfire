@@ -2,16 +2,13 @@ import {ServerUser, User} from "./User";
 import {Channel} from "./Channel";
 
 export class Server {
-    get id(): number {
-        return this._id;
-    }
-    protected _id: number;
+    public Id: number;
     
-    public name: string;
-    public owner: ServerUser;
-    public channels: Channel[];
-    public admins: ServerUser[];
-    public users: ServerUser[];
+    public Name: string;
+    public Owner: ServerUser;
+    public Channels: Channel[];
+    public Admins: ServerUser[];
+    public Users: ServerUser[];
     
     constructor(
         id: number,
@@ -21,11 +18,11 @@ export class Server {
         admins: ServerUser[],
         users: ServerUser[]
     ) {
-        this._id = id;
-        this.name = name;
-        this.owner = owner;
-        this.channels = channels;
-        this.admins = admins;
-        this.users = users;
+        this.Id = id;
+        this.Name = name;
+        this.Owner = owner;
+        this.Channels = channels;
+        this.Admins = admins;
+        this.Users = users;
     }
 }
