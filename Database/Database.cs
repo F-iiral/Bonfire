@@ -149,6 +149,7 @@ public static class Database
         message.Channel = channel;
         message.Author = author;
         message.Content = data.Content;
+        message.LastEdited = data.LastEdited;
 
         MessageCache.Add(message);
         return message;

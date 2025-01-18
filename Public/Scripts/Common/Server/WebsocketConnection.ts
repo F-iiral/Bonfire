@@ -3,8 +3,8 @@ import {getCookie} from "../Helpers/Cookies.js";
 const websocket: WebSocket = new WebSocket("/websocket");
 const responseListeners: Map<string, Function[]> = new Map([
     ["DeleteMessageContext", []],
-    ["GetMessagesContext", []],
-    ["SendMessageContext", []],
+    ["EditMessageConfirmationContext", []],
+    ["SendMessageConfirmationContext", []],
 ]);
 
 class Event {

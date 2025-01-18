@@ -24,8 +24,10 @@ public class SendMessagePath : BasePath
         if (channel == null || author == null || content == null)
             return UnprocessableMessage(msg);
 
-        Message.Create(content, channel, author);
-        new SendMessageEvent().Emit(ctx);
+        var createdMessage = Message.Create(content, channel, author);
+        var confirmationCtx = (SendMessageConfirmationContext)ctx ;
+        confirmationCtx.MessageId = createdMessage.Id.Val;
+        new SendMessageEvent().Emit(confirmationCtx);
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

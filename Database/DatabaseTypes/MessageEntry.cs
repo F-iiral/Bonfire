@@ -10,6 +10,7 @@ public class MessageEntry
     public long Author { get; set; }
     
     public string? Content { get; set; } = null;
+    public long LastEdited { get; set; }
 
     public MessageEntry(Message message)
     {
@@ -18,5 +19,6 @@ public class MessageEntry
         Author = message.Author.Id.Val;
         
         Content = message.Content;
+        LastEdited = message.LastEdited;
     }
 }

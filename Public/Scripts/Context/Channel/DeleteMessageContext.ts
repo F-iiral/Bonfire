@@ -1,13 +1,13 @@
 export class DeleteMessageContext
 {
-    public channelId: string;
-    public messageId: string;
+    public ChannelId: number;
+    public MessageId: number;
 
     constructor(
-        channelId: string,
-        messageId: string,
+        channelId: number,
+        messageId: number,
     ) {
-        this.channelId = channelId;
-        this.messageId = messageId;
+        this.ChannelId = channelId;
+        this.MessageId = messageId;
     }
 }

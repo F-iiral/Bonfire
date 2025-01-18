@@ -27,7 +27,9 @@ public class EditMessagePath : BasePath
             return InsufficientPermissionMessage(msg);
 
         message.Edit(newContent);
-        new EditMessageEvent().Emit(ctx);
+        var confirmationCtx = (EditMessageConfirmationContext)ctx ;
+        confirmationCtx.LastEdited = DateTime.Now.Ticks;
+        new EditMessageEvent().Emit(confirmationCtx);
 
         msg.Response.StatusCode = StatusCodes.Ok;
         msg.Response.ContentType = "application/json";

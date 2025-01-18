@@ -1,9 +1,9 @@
 export class GetMessagesContext
 {
-    public count: number;
-    public channelId: number;
-    public greedy: boolean;
-    public before: number;
+    public Count: number;
+    public ChannelId: number;
+    public Greedy: boolean;
+    public Before: number;
 
     constructor(
         channelId: number,
@@ -11,9 +11,9 @@ export class GetMessagesContext
         greedy?: boolean,
         before?: number,
     ) {
-        this.count = count ?? 64;
-        this.channelId = channelId;
-        this.greedy = greedy ?? false;
-        this.before = before ?? 2**53;
+        this.Count = count ?? 64;
+        this.ChannelId = channelId;
+        this.Greedy = greedy ?? false;
+        this.Before = before ?? 2**53;
     }
 }

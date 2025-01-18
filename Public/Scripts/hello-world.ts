@@ -93,7 +93,7 @@ if (messages1 != null && messages2 != null) {
 
 connectWebsocket();
 addWebsocketListener("DeleteMessageContext", (ctx: DeleteMessageContext) => {
-    console.log(ctx);
+    InternalState.getInstance().deleteMessage(ctx);
 })
 
 for (let i=0; i<20; i++) {

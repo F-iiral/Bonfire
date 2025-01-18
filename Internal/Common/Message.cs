@@ -10,6 +10,7 @@ public class Message(LiteFlakeId? id) : ICachableType
     public User Author { get; set; }
     
     public string? Content { get; set; } = null;
+    public long LastEdited { get; set; } = -1;
 
     public void Delete()
     {

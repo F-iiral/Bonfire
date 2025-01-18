@@ -6,13 +6,13 @@ export class Channel {
     
     public Name: string;
     public Server: Server | null;
-    public Messages: (Message | null)[];
+    public Messages: Message[];
     
     constructor(
         id: number,
         name: string,
         server: Server | null, 
-        messages: (Message | null)[]
+        messages: Message[]
     ) {
         this.Id = id;
         this.Name = name;
