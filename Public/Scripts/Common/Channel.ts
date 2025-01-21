@@ -6,7 +6,7 @@ export class Channel {
     
     public Name: string;
     public Server: Server | null;
-    public Messages: Message[];
+    public Messages!: Map<number, Message>;
     
     constructor(
         id: number,
@@ -17,6 +17,8 @@ export class Channel {
         this.Id = id;
         this.Name = name;
         this.Server = server;
-        this.Messages = messages;
+        this.Messages = new Map();
+        
+        messages.map(x => this.Messages.set(x.Id, x));
     }
 }

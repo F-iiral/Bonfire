@@ -27,6 +27,7 @@ public class SendMessagePath : BasePath
         var createdMessage = Message.Create(content, channel, author);
         var confirmationCtx = (SendMessageConfirmationContext)ctx ;
         confirmationCtx.MessageId = createdMessage.Id.Val;
+        confirmationCtx.AuthorId = createdMessage.Author.Id.Val;
         new SendMessageEvent().Emit(confirmationCtx);
 
         msg.Response.StatusCode = StatusCodes.Ok;

@@ -25,6 +25,12 @@ export function closeWebsocket(code: number): void {
     websocket.close(code);
 }
 
+export function getWebsocket(): WebSocket {
+    return websocket;
+}
+export function getWebsocketListeners(): Map<string, Function[]> {
+    return responseListeners;
+}
 export function sendWebsocketMessage(message: string): void {
     if (websocket.readyState === WebSocket.OPEN) {
         websocket.send(message);

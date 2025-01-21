@@ -1,17 +1,18 @@
 import {parseFormattedText} from "./Common/Helpers/Markdown.js";
 import {Get, Query} from "./Common/Server/HttpConnections.js";
-import {SelfUserContent} from "./Content/Account/SelfUserContent.js";
-import {GetMessagesContext} from "./Context/Channel/GetMessagesContext.js";
 import {addWebsocketListener, connectWebsocket, sendWebsocketMessage} from "./Common/Server/WebsocketConnection.js";
 import {sleep} from "./Common/Helpers/Sleep.js";
+import {SelfUserContent} from "./Content/Account/SelfUserContent.js";
+import {GetMessagesContext} from "./Context/Channel/GetMessagesContext.js";
 import {DeleteMessageContext} from "./Context/Channel/DeleteMessageContext.js";
+import {EditMessageConfirmationContext} from "./Context/Channel/EditMessageConfirmationContext.js";
+import {SendMessageConfirmationContext} from "./Context/Channel/SendMessageConfirmationContext.js";
 import {InternalState} from "./Common/Internal State/InternalState.js";
 import ReactDOM from "react-dom";
 
 const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
 if (accountData) {
     const grr = new InternalState(accountData);
-    console.log(grr);
 }
 
 const messages1 = await Query<[], GetMessagesContext>("api/v1/channel/get_messages", new GetMessagesContext(4198290620417, 255, true))
@@ -95,6 +96,14 @@ connectWebsocket();
 addWebsocketListener("DeleteMessageContext", (ctx: DeleteMessageContext) => {
     InternalState.getInstance().deleteMessage(ctx);
 })
+addWebsocketListener("EditMessageConfirmationContext", (ctx: EditMessageConfirmationContext) => {
+    InternalState.getInstance().editMessage(ctx);
+})
+
+addWebsocketListener("SendMessageConfirmationContext", (ctx: SendMessageConfirmationContext) => {
+    InternalState.getInstance().addMessage(ctx);
+})
+console.log(InternalState.getDebugInstance())
 
 for (let i=0; i<20; i++) {
     sendWebsocketMessage(i.toString())

@@ -6,9 +6,9 @@ export class Server {
     
     public Name: string;
     public Owner: ServerUser;
-    public Channels: Channel[];
-    public Admins: ServerUser[];
-    public Users: ServerUser[];
+    public Channels: Map<number, Channel>;
+    public Admins: Map<number, ServerUser>;
+    public Users:  Map<number, ServerUser>;
     
     constructor(
         id: number,
@@ -21,8 +21,12 @@ export class Server {
         this.Id = id;
         this.Name = name;
         this.Owner = owner;
-        this.Channels = channels;
-        this.Admins = admins;
-        this.Users = users;
+        this.Channels = new Map();
+        this.Admins = new Map();
+        this.Users = new Map();
+        
+        channels.map(x => this.Channels.set(x.Id, x));
+        admins.map(x => this.Admins.set(x.Id, x));
+        users.map(x => this.Users.set(x.Id, x));
     }
 }

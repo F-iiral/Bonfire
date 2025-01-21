@@ -6,4 +6,5 @@ namespace BonfireServer.Internal.Context.Channel;
 public class SendMessageConfirmationContext : SendMessageContext
 {
     public long MessageId { get; set; }
+    public long AuthorId { get; set; }
 }
