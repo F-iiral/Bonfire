@@ -1,5 +1,5 @@
-import {User} from "./User";
-import {Channel} from "./Channel";
+import {User} from "./User.js";
+import {Channel} from "./Channel.js";
 
 export class Message {
     public Id: number;

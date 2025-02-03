@@ -8,6 +8,13 @@ import {SendMessageConfirmationContext} from "../../Context/Channel/SendMessageC
 import {EditMessageConfirmationContext} from "../../Context/Channel/EditMessageConfirmationContext.js";
 import {getWebsocket, getWebsocketListeners} from "../Server/WebsocketConnection.js";
 
+class InternalStateUpdate {
+    updateMessage: boolean=false;
+    updateChannels: boolean=false;
+    updateServers: boolean=false;
+    updateFriends: boolean=false;
+}
+
 export class InternalState {
     private static Instance: InternalState;
     
@@ -70,6 +77,10 @@ export class InternalState {
         }
     }
 
+    public display(updater: InternalStateUpdate): void {
+        console.log("Updating State (TODO)")
+    }
+    
     public findServerById(serverId: number): Server|null {
         const inst = InternalState.Instance;
         let searchedServer: Server|null = null;
@@ -212,6 +223,10 @@ export class InternalState {
 
         let message = new Message(ctx.MessageId, channel, author, ctx.Message);
         channel.Messages.set(message.Id, message);
+
+        const updater = new InternalStateUpdate();
+        updater.updateMessage = true;
+        this.display(updater)
     }
     public editMessage(ctx: EditMessageConfirmationContext): void {
         const inst = InternalState.Instance;
@@ -221,6 +236,10 @@ export class InternalState {
             return;
 
         message.Content = ctx.Message;
+
+        const updater = new InternalStateUpdate();
+        updater.updateMessage = true;
+        this.display(updater)
     }
     public deleteMessage(ctx: DeleteMessageContext): void {
         const inst = InternalState.Instance;
@@ -238,5 +257,9 @@ export class InternalState {
                 let index = channel.Messages.delete(message);
             }
         }
+        
+        const updater = new InternalStateUpdate();
+        updater.updateMessage = true;
+        this.display(updater)
     }
 }

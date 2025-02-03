@@ -12,6 +12,7 @@ using BonfireServer.Internal.Event;
 using BonfireServer.Internal.Event.Channel;
 using BonfireServer.Internal.Paths.Channel;
 using BonfireServer.Internal.Paths.User;
+using BonfireServer.Test;
 
 namespace BonfireServer;
 
