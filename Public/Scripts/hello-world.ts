@@ -8,7 +8,6 @@ import {DeleteMessageContext} from "./Context/Channel/DeleteMessageContext.js";
 import {EditMessageConfirmationContext} from "./Context/Channel/EditMessageConfirmationContext.js";
 import {SendMessageConfirmationContext} from "./Context/Channel/SendMessageConfirmationContext.js";
 import {InternalState} from "./Common/Internal State/InternalState.js";
-import ReactDOM from "react-dom";
 
 const accountData = await Get<SelfUserContent>("/api/v1/account/get_self_user")
 if (accountData) {
@@ -68,12 +67,10 @@ const inputText = "This is **bold** text. " +
     "}\n" +
     "```";
 const outputElement = parseFormattedText(inputText);
-const textPart = document.createElement('p');
-ReactDOM.render(outputElement, textPart);
-
 const parent = document.getElementById("content")
+
 if (parent) {
-    parent.appendChild(textPart);
+    parent.appendChild(outputElement);
 }
 
 if (messages1 != null && messages2 != null) {
@@ -82,12 +79,10 @@ if (messages1 != null && messages2 != null) {
     for (const message of messages) {
         // @ts-ignore
         const outputElement = parseFormattedText(message.Content);
-        const textPart = document.createElement('p');
-        ReactDOM.render(outputElement, textPart);
-
+        
         const parent = document.getElementById("content")
         if (parent) {
-            parent.appendChild(textPart);
+            parent.appendChild(outputElement);
         }
     }
 }

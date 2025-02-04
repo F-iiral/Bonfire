@@ -18,4 +18,8 @@
       <TypeScriptCompile Remove="Public\Scripts\settings.ts" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Public\Scripts\Common\HTML Entities\" />
+    </ItemGroup>
+
 </Project>

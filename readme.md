@@ -13,7 +13,6 @@ Bonfire is a lightweight ChatApp made using .NET and TypeScript.
 - [MongoDB](https://www.mongodb.com/try/download/community)
 - [TypeScript Compiler](https://www.typescriptlang.org/download/)
 - [DotNetEnv](https://github.com/tonerdo/dotnet-env)
-- [React](https://react.dev/)
 - [highlight.js](https://highlightjs.org/)
 
 ## Progress
